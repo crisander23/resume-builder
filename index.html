@@ -1,0 +1,796 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>cLASSIC RESUME BUILDER</title>
+<style>
+  /* ================= Theme Tokens ================= */
+  :root{
+    --bg:#000;                   /* dark default */
+    --ink:#e6eaf2;
+    --muted:#a9b0bf;
+    --glass:rgba(255,255,255,.08);
+    --border:rgba(255,255,255,.16);
+    --btn-surface:rgba(255,255,255,.06);
+
+    /* unified minimalist blue for BOTH themes */
+    --btn-primary:#2563eb;
+    --btn-primary-ink:#ffffff;
+
+    --radius:16px;
+  }
+  /* Light mode overrides (keeps --btn-primary same) */
+  :root[data-theme="light"]{
+    --bg:#f5f7fb;
+    --ink:#0f172a;
+    --muted:#475569;
+    --glass:#ffffff;
+    --border:#e2e8f0;
+    --btn-surface:#f1f5f9;
+  }
+
+  *{ box-sizing:border-box }
+  html,body{ height:100%; margin:0 }
+  body{
+    min-height:100%;
+    background:var(--bg); color:var(--ink);
+    font:14px/1.45 Inter, system-ui, -apple-system, "Segoe UI", Roboto, Arial;
+    letter-spacing:.01em;
+  }
+
+  /* ================= 50/50 Layout ================= */
+  .wrap{
+    width:100vw; height:100dvh;
+    display:grid; grid-template-columns:50% 50%;
+  }
+  .wrap > *{ min-width:0; min-height:0; }
+
+  @media (max-width: 900px){
+    .wrap{ grid-template-columns:1fr; height:auto; }
+  }
+
+  /* ================= Form Pane ================= */
+  .panel{
+    padding:16px; overflow:auto;
+    background:var(--glass); border-right:1px solid var(--border);
+    backdrop-filter: blur(12px) saturate(120%);
+    -webkit-backdrop-filter: blur(12px) saturate(120%);
+  }
+  .panel-header{
+    display:flex; align-items:center; justify-content:space-between; gap:10px;
+    padding:6px 0 12px; border-bottom:1px solid var(--border);
+  }
+  .title{ font-weight:900; letter-spacing:.02em; font-size:16px; text-transform:uppercase; }
+  .controls{ display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
+  .btn{
+    border:1px solid var(--border);
+    background:var(--btn-surface);
+    color:var(--ink);
+    padding:8px 12px; border-radius:12px; cursor:pointer;
+  }
+  .btn.primary{ background:var(--btn-primary); color:var(--btn-primary-ink); border-color:var(--btn-primary); font-weight:700; }
+
+  /* Icon-only toggle */
+  .icon-btn{
+    width:38px; height:38px; border-radius:999px;
+    display:inline-flex; align-items:center; justify-content:center;
+    border:1px solid var(--border); background:var(--btn-surface); cursor:pointer;
+  }
+  .icon{ width:18px; height:18px; display:block; }
+  /* show sun in light, moon in dark */
+  :root[data-theme="light"] .icon--sun{ display:block }
+  :root[data-theme="light"] .icon--moon{ display:none }
+  :root:not([data-theme="light"]) .icon--sun{ display:none }
+  :root:not([data-theme="light"]) .icon--moon{ display:block }
+
+  .tabs{ display:flex; gap:8px; padding:10px 0; overflow:auto; }
+  .tab{
+    white-space:nowrap; padding:8px 12px; border-radius:999px; cursor:pointer;
+    border:1px solid var(--border); background:var(--btn-surface); color:var(--ink); font-weight:600; font-size:12px;
+  }
+  .tab.active{ outline:2px solid var(--border); }
+
+  .slides{ position:relative; overflow:hidden; border-radius:12px; border:1px solid var(--border); }
+  .rail{ display:flex; transition:transform .3s ease; will-change:transform; }
+  .section{ flex:0 0 100%; padding:14px; min-height:320px; }
+  .section h3{ margin:0 0 6px; font-size:14px; }
+  .muted{ color:var(--muted); font-size:12px; margin-bottom:8px; }
+
+  .row{ display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+  @media (max-width:560px){ .row{ grid-template-columns:1fr; } }
+
+  label{ display:block; font-size:12px; color:var(--muted); margin:10px 0 6px; }
+  input, textarea{
+    width:100%; color:var(--ink);
+    background: var(--btn-surface);
+    border:1px solid var(--border); outline:none; border-radius:12px;
+    padding:10px 12px;
+  }
+  textarea{ min-height:90px; resize:vertical; }
+  .section-card{ border:1px dashed var(--border); border-radius:12px; padding:10px; margin:10px 0; background: var(--btn-surface); }
+
+  .nav{ display:flex; justify-content:space-between; gap:8px; padding:10px 0 0; margin-top:10px; border-top:1px solid var(--border); }
+
+  /* ================= Preview Pane ================= */
+  .preview{
+    background:var(--bg); display:flex; align-items:flex-start; justify-content:center;
+    overflow:auto; padding:16px;
+  }
+  .page{
+    width:min(100%,816px);
+    background:#fff; color:#111; border-radius:12px;
+    padding:.75in .8in;
+    font-family:"Times New Roman", Times, Georgia, serif; font-size:11pt; line-height:1.25;
+    box-shadow: 0 12px 26px rgba(0,0,0,.2);
+  }
+  .name{ text-align:center; font-weight:700; font-size:18pt; letter-spacing:.2px; }
+  .contact{ text-align:center; font-size:10.5pt; color:#444; margin-top:4px; }
+  .rule{ border:0; border-top:1px solid #000; margin:8px 0 6px; }
+  .section-pv{ margin-top:8px; }
+  .section-title{
+    font-variant:small-caps; font-weight:700; letter-spacing:.06em;
+    border-bottom:1px solid #000; padding-bottom:2px; margin-bottom:6px; font-size:11.5pt;
+  }
+  .row-grid{ display:grid; grid-template-columns:1fr auto; gap:8px; align-items:baseline; margin-top:2px; }
+  .org{ font-weight:700 } .role{ font-style:italic } .place{ white-space:nowrap }
+  .bullets{ margin:2px 0 6px 0; padding-left:16px; } .bullets li{ margin:2px 0 }
+  .tight{ margin:0; padding-left:16px; } .tight li{ margin:2px 0 }
+
+  /* ================= Print ================= */
+  @page{ size: Letter; margin:.6in; }
+  @media print{
+    body{ background:#fff }
+    .wrap{ display:block }
+    .panel{ display:none }
+    .preview{ padding:0 }
+    .page{ width:auto; padding:0; border-radius:0; box-shadow:none; }
+  }
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <!-- =============== LEFT: FORM =============== -->
+    <div class="panel">
+      <div class="panel-header">
+        <div class="title">cLASSIC RESUME BUILDER</div>
+        <div class="controls">
+          <!-- Icon-only theme toggle -->
+          <button id="modeBtn" class="icon-btn" aria-label="Toggle theme" title="Toggle theme">
+            <!-- sun -->
+            <svg class="icon icon--moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                 stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <circle cx="12" cy="12" r="4"></circle>
+              <path d="M12 2v2m0 16v2m10-10h-2M4 12H2m15.54 6.46-1.41-1.41M7.88 7.88 6.46 6.46m10.96 0-1.42 1.42M7.88 16.12 6.46 17.54"></path>
+            </svg>
+            <!-- moon -->
+            <svg class="icon icon--sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                 stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+            </svg>
+          </button>
+
+          <button class="btn" onclick="fillSample()">Sample</button>
+          <button class="btn" onclick="clearAll()">Clear</button>
+          <button class="btn primary" onclick="window.print()">Save PDF</button>
+        </div>
+      </div>
+
+      <div class="tabs" id="tabs">
+        <button class="tab active" data-i="0">Header</button>
+        <button class="tab" data-i="1">Summary</button>
+        <button class="tab" data-i="2">Skills</button>
+        <button class="tab" data-i="3">Education</button>
+        <button class="tab" data-i="4">Experience</button>
+        <button class="tab" data-i="5">Projects</button>
+        <button class="tab" data-i="6">Certs</button>
+        <button class="tab" data-i="7">Awards</button>
+        <button class="tab" data-i="8">Activities</button>
+        <button class="tab" data-i="9">Languages</button>
+        <button class="tab" data-i="10">Interests</button>
+        <button class="tab" data-i="11">Custom</button>
+      </div>
+
+      <div class="slides">
+        <div id="rail" class="rail">
+          <!-- 0: Header -->
+          <section class="section">
+            <h3>Header / Contact</h3>
+            <div class="muted">Your name and how to reach you.</div>
+            <label>Name</label><input id="name" placeholder="Your Full Name" />
+            <div class="row">
+              <div><label>Location</label><input id="loc" placeholder="City, Country" /></div>
+              <div><label>Phone</label><input id="phone" placeholder="+63 ___ ___ ____" /></div>
+            </div>
+            <div class="row">
+              <div><label>Email</label><input id="email" placeholder="you@email.com" /></div>
+              <div><label>Website / Portfolio</label><input id="portfolio" placeholder="your-site.com" /></div>
+            </div>
+            <div class="row">
+              <div><label>LinkedIn</label><input id="linkedin" placeholder="linkedin.com/in/username" /></div>
+              <div><label>Other Link</label><input id="otherlink" placeholder="e.g., Behance, ResearchGate" /></div>
+            </div>
+          </section>
+
+          <!-- 1: Summary -->
+          <section class="section">
+            <h3>Summary</h3>
+            <div class="muted">2–3 lines: who you are, strengths, value.</div>
+            <label>Summary</label>
+            <textarea id="summary" placeholder="Short professional overview."></textarea>
+          </section>
+
+          <!-- 2: Skills -->
+          <section class="section">
+            <h3>Skills</h3>
+            <div class="muted">Group skills into categories (Core, Tools, Soft Skills).</div>
+            <div id="skillsList"></div>
+            <div><button class="btn" onclick="addSkillCategory()">+ Add Skill Category</button></div>
+          </section>
+
+          <!-- 3: Education -->
+          <section class="section">
+            <h3>Education</h3>
+            <div class="muted">Schools, programs, dates, and notes (GPA/honors).</div>
+            <div id="eduList"></div>
+            <div><button class="btn" onclick="addEdu()">+ Add Education</button></div>
+          </section>
+
+          <!-- 4: Experience -->
+          <section class="section">
+            <h3>Experience</h3>
+            <div class="muted">Use impact bullets. Start with verbs; add numbers.</div>
+            <div id="expList"></div>
+            <div><button class="btn" onclick="addExp()">+ Add Experience</button></div>
+          </section>
+
+          <!-- 5: Projects -->
+          <section class="section">
+            <h3>Projects / Portfolio</h3>
+            <div id="projList"></div>
+            <div><button class="btn" onclick="addProj()">+ Add Project</button></div>
+          </section>
+
+          <!-- 6: Certifications -->
+          <section class="section">
+            <h3>Certifications</h3>
+            <div id="certList"></div>
+            <button class="btn" onclick="addCert()">+ Add Certification</button>
+          </section>
+
+          <!-- 7: Awards -->
+          <section class="section">
+            <h3>Awards</h3>
+            <div id="awardList"></div>
+            <button class="btn" onclick="addAward()">+ Add Award</button>
+          </section>
+
+          <!-- 8: Activities -->
+          <section class="section">
+            <h3>Activities & Leadership</h3>
+            <div id="actList"></div>
+            <button class="btn" onclick="addActivity()">+ Add Activity</button>
+          </section>
+
+          <!-- 9: Languages -->
+          <section class="section">
+            <h3>Languages</h3>
+            <div id="langList"></div>
+            <button class="btn" onclick="addLanguage()">+ Add Language</button>
+          </section>
+
+          <!-- 10: Interests -->
+          <section class="section">
+            <h3>Interests</h3>
+            <textarea id="interests" placeholder="Hobbies, interests, or volunteer focus."></textarea>
+          </section>
+
+          <!-- 11: Custom Sections -->
+          <section class="section">
+            <h3>Custom Sections</h3>
+            <div class="muted">Create any section (Volunteer Work, Publications, Trainings, etc.).</div>
+            <div id="customList"></div>
+            <div style="margin-top:8px;">
+              <button class="btn" onclick="addCustomSection()">+ Add Custom Section</button>
+            </div>
+          </section>
+        </div>
+      </div>
+
+      <div class="nav">
+        <button id="prevBtn" class="btn">◀ Prev</button>
+        <button id="nextBtn" class="btn primary">Next ▶</button>
+      </div>
+    </div>
+
+    <!-- =============== RIGHT: PREVIEW =============== -->
+    <div class="preview">
+      <div class="page" id="page">
+        <header>
+          <div class="name" id="pvName">YOUR NAME</div>
+          <div class="contact" id="pvContact">Location • Phone • email@example.com • website • LinkedIn</div>
+        </header>
+        <hr class="rule" />
+
+        <section class="section-pv" id="pvSummaryWrap" style="display:none;">
+          <div class="section-title">Summary</div>
+          <div id="pvSummary"></div>
+        </section>
+
+        <section class="section-pv" id="pvEducation" style="display:none;">
+          <div class="section-title">Education</div>
+          <div id="pvEduList"></div>
+        </section>
+
+        <section class="section-pv" id="pvExperience" style="display:none;">
+          <div class="section-title">Experience</div>
+          <div id="pvExpList"></div>
+        </section>
+
+        <section class="section-pv" id="pvProjects" style="display:none;">
+          <div class="section-title">Projects</div>
+          <div id="pvProjList"></div>
+        </section>
+
+        <section class="section-pv" id="pvSkills" style="display:none;">
+          <div class="section-title">Skills</div>
+          <div id="pvSkillsList"></div>
+        </section>
+
+        <section class="section-pv" id="pvCerts" style="display:none;">
+          <div class="section-title">Certifications</div>
+          <ul class="tight" id="pvCertList"></ul>
+        </section>
+
+        <section class="section-pv" id="pvAwards" style="display:none;">
+          <div class="section-title">Awards</div>
+          <ul class="tight" id="pvAwardList"></ul>
+        </section>
+
+        <section class="section-pv" id="pvActs" style="display:none;">
+          <div class="section-title">Activities & Leadership</div>
+          <ul class="tight" id="pvActList"></ul>
+        </section>
+
+        <section class="section-pv" id="pvLangs" style="display:none;">
+          <div class="section-title">Languages</div>
+          <ul class="tight" id="pvLangList"></ul>
+        </section>
+
+        <section class="section-pv" id="pvInterests" style="display:none;">
+          <div class="section-title">Interests</div>
+          <div id="pvInterestsText"></div>
+        </section>
+
+        <!-- Custom sections render here -->
+        <div id="pvCustomSections"></div>
+      </div>
+    </div>
+  </div>
+
+<script>
+/* ================= Theme Toggle (icon) ================= */
+(function initTheme(){
+  const saved = localStorage.getItem('resume_theme');
+  if(saved){ document.documentElement.setAttribute('data-theme', saved); }
+  document.getElementById('modeBtn').addEventListener('click', ()=>{
+    const isLight = document.documentElement.getAttribute('data-theme') === 'light';
+    const next = isLight ? 'dark' : 'light';
+    document.documentElement.setAttribute('data-theme', next);
+    localStorage.setItem('resume_theme', next);
+  });
+})();
+
+/* ================= Tabs / Slides ================= */
+const rail = document.getElementById('rail');
+const tabs = Array.from(document.querySelectorAll('.tab'));
+let step = 0;
+function go(i){
+  step = Math.max(0, Math.min(tabs.length-1, i));
+  rail.style.transform = `translateX(-${step*100}%)`;
+  tabs.forEach((t,idx)=> t.classList.toggle('active', idx===step));
+}
+tabs.forEach(t => t.addEventListener('click', ()=> go(parseInt(t.dataset.i,10))));
+document.getElementById('prevBtn').addEventListener('click', ()=> go(step-1));
+document.getElementById('nextBtn').addEventListener('click', ()=> go(step+1));
+addEventListener('keydown', (e)=>{ if(e.key==='ArrowRight') go(step+1); if(e.key==='ArrowLeft') go(step-1); });
+go(0);
+
+/* ================= Helpers ================= */
+const $ = (id)=>document.getElementById(id);
+const esc = (s)=> (s||"").toString();
+
+/* ----- Header ----- */
+function updateHeader(){
+  const name = esc($('name').value);
+  const loc = esc($('loc').value);
+  const phone = esc($('phone').value);
+  const email = esc($('email').value);
+  const portfolio = esc($('portfolio').value);
+  const linkedin = esc($('linkedin').value);
+  const other = esc($('otherlink').value);
+  const parts=[];
+  if(loc) parts.push(loc);
+  if(phone) parts.push(phone);
+  if(email) parts.push(email);
+  if(portfolio) parts.push(portfolio);
+  if(linkedin) parts.push(linkedin);
+  if(other) parts.push(other);
+  $('pvName').textContent = name || 'YOUR NAME';
+  $('pvContact').textContent = parts.join(' • ');
+}
+['name','loc','phone','email','portfolio','linkedin','otherlink'].forEach(id=> $(id).addEventListener('input', updateHeader));
+
+/* ----- Summary ----- */
+function updateSummary(){
+  const s = esc($('summary').value).trim();
+  $('pvSummaryWrap').style.display = s ? '' : 'none';
+  $('pvSummary').textContent = s;
+}
+$('summary').addEventListener('input', updateSummary);
+
+/* ----- Skills (categories) ----- */
+function addSkillCategory(pref={}){
+  const wrap = document.createElement('div');
+  wrap.className = 'section-card';
+  wrap.innerHTML = `
+    <label>Category Label (e.g., Core, Tools, Soft Skills)</label>
+    <input class="sk-label" value="${pref.label||''}" placeholder="Category name">
+    <label>Items (comma-separated)</label>
+    <input class="sk-items" value="${pref.items||''}" placeholder="e.g., Communication, Reporting, Customer Service">
+    <div style="margin-top:8px;">
+      <button class="btn" onclick="this.closest('.section-card').remove(); renderSkills();">Remove</button>
+    </div>`;
+  $('skillsList').appendChild(wrap);
+  wrap.querySelectorAll('input').forEach(el=>el.addEventListener('input', renderSkills));
+  renderSkills();
+}
+function renderSkills(){
+  const pv=$('pvSkillsList'); pv.innerHTML='';
+  const cards=Array.from($('skillsList').children);
+  const wrap=document.getElementById('pvSkills');
+  if(cards.length===0){ wrap.style.display='none'; return; }
+  wrap.style.display='';
+  cards.forEach(c=>{
+    const label = (c.querySelector('.sk-label').value || 'Skills');
+    const items = c.querySelector('.sk-items').value || '';
+    const div = document.createElement('div'); div.innerHTML = `<strong>${label}:</strong> ${items}`;
+    pv.appendChild(div);
+  });
+}
+
+/* ----- Education ----- */
+function addEdu(pref={}){
+  const card=document.createElement('div'); card.className='section-card';
+  card.innerHTML=`
+    <div class="row">
+      <div><label>School</label><input class="ed-school" value="${pref.school||''}" placeholder="University / College"></div>
+      <div><label>Degree / Program</label><input class="ed-degree" value="${pref.degree||''}" placeholder="e.g., BS Business Administration"></div>
+    </div>
+    <div class="row">
+      <div><label>Location</label><input class="ed-place" value="${pref.place||''}" placeholder="City, Country"></div>
+      <div class="row">
+        <div><label>Start</label><input class="ed-start" value="${pref.start||''}" placeholder="2019"></div>
+        <div><label>End</label><input class="ed-end" value="${pref.end||''}" placeholder="2023"></div>
+      </div>
+    </div>
+    <label>Notes (GPA, honors, activities)</label>
+    <textarea class="ed-notes" placeholder="GPA, honors, coursework">${pref.notes||''}</textarea>
+    <div style="margin-top:8px;"><button class="btn" onclick="this.closest('.section-card').remove(); renderEdu();">Remove</button></div>`;
+  $('eduList').appendChild(card);
+  card.querySelectorAll('input,textarea').forEach(el=>el.addEventListener('input', renderEdu));
+  renderEdu();
+}
+function renderEdu(){
+  const pv=$('pvEduList'); pv.innerHTML='';
+  const cards=Array.from($('eduList').children);
+  const wrap=document.getElementById('pvEducation');
+  if(cards.length===0){ wrap.style.display='none'; return; }
+  wrap.style.display='';
+  cards.forEach(c=>{
+    const school=c.querySelector('.ed-school').value;
+    const degree=c.querySelector('.ed-degree').value;
+    const place=c.querySelector('.ed-place').value;
+    const start=c.querySelector('.ed-start').value;
+    const end=c.querySelector('.ed-end').value;
+    const notes=c.querySelector('.ed-notes').value;
+    const row=document.createElement('div'); row.className='row-grid';
+    row.innerHTML=`<div><div class="org">${school}</div><div class="role">${degree}</div></div>
+                   <div class="place">${place?place+' | ':''}${(start||end)?(start+'–'+end):''}</div>`;
+    pv.appendChild(row);
+    if(notes){ const p=document.createElement('div'); p.textContent=notes; pv.appendChild(p); }
+  });
+}
+
+/* ----- Experience ----- */
+function addExp(pref={}){
+  const card=document.createElement('div'); card.className='section-card';
+  card.innerHTML=`
+    <div class="row">
+      <div><label>Organization</label><input class="ex-org" value="${pref.org||''}" placeholder="Company / Organization"></div>
+      <div><label>Role / Title</label><input class="ex-role" value="${pref.role||''}" placeholder="e.g., Operations Associate"></div>
+    </div>
+    <div class="row">
+      <div><label>Location</label><input class="ex-place" value="${pref.place||''}" placeholder="City, Country"></div>
+      <div class="row">
+        <div><label>Start</label><input class="ex-start" value="${pref.start||''}" placeholder="2022"></div>
+        <div><label>End</label><input class="ex-end" value="${pref.end||''}" placeholder="Present"></div>
+      </div>
+    </div>
+    <label>Bullets (one per line)</label>
+    <textarea class="ex-bullets" placeholder="- Use action verbs and numbers
+- e.g., Processed 50+ customer requests weekly with 95% satisfaction">${(pref.bullets||[]).join('\n')}</textarea>
+    <div style="margin-top:8px;"><button class="btn" onclick="this.closest('.section-card').remove(); renderExp();">Remove</button></div>`;
+  $('expList').appendChild(card);
+  card.querySelectorAll('input,textarea').forEach(el=>el.addEventListener('input', renderExp));
+  renderExp();
+}
+function renderExp(){
+  const pv=$('pvExpList'); pv.innerHTML='';
+  const cards=Array.from($('expList').children);
+  const wrap=document.getElementById('pvExperience');
+  if(cards.length===0){ wrap.style.display='none'; return; }
+  wrap.style.display='';
+  cards.forEach(c=>{
+    const org=c.querySelector('.ex-org').value;
+    const role=c.querySelector('.ex-role').value;
+    const place=c.querySelector('.ex-place').value;
+    const start=c.querySelector('.ex-start').value;
+    const end=c.querySelector('.ex-end').value;
+    const bullets=c.querySelector('.ex-bullets').value.split('\n').map(s=>s.trim()).filter(Boolean);
+    const block=document.createElement('div');
+    const row=document.createElement('div'); row.className='row-grid';
+    row.innerHTML=`<div><div class="org">${org}</div><div class="role">${role}</div></div>
+                   <div class="place">${place?place+' | ':''}${(start||end)?(start+'–'+end):''}</div>`;
+    block.appendChild(row);
+    if(bullets.length){
+      const ul=document.createElement('ul'); ul.className='bullets';
+      bullets.forEach(b=>{ const li=document.createElement('li'); li.textContent=b.replace(/^-+\s*/,''); ul.appendChild(li); });
+      block.appendChild(ul);
+    }
+    pv.appendChild(block);
+  });
+}
+
+/* ----- Projects ----- */
+function addProj(pref={}){
+  const card=document.createElement('div'); card.className='section-card';
+  card.innerHTML=`
+    <div class="row">
+      <div><label>Project / Portfolio Item</label><input class="pr-name" value="${pref.name||''}" placeholder="Title"></div>
+      <div><label>Context</label><input class="pr-context" value="${pref.context||''}" placeholder="e.g., Volunteer, Academic, Freelance"></div>
+    </div>
+    <label>Bullets (one per line)</label>
+    <textarea class="pr-bullets" placeholder="- What you did and what happened">${(pref.bullets||[]).join('\n')}</textarea>
+    <div style="margin-top:8px;"><button class="btn" onclick="this.closest('.section-card').remove(); renderProj();">Remove</button></div>`;
+  $('projList').appendChild(card);
+  card.querySelectorAll('input,textarea').forEach(el=>el.addEventListener('input', renderProj));
+  renderProj();
+}
+function renderProj(){
+  const pv=$('pvProjList'); pv.innerHTML='';
+  const cards=Array.from($('projList').children);
+  const wrap=document.getElementById('pvProjects');
+  if(cards.length===0){ wrap.style.display='none'; return; }
+  wrap.style.display='';
+  cards.forEach(c=>{
+    const name=c.querySelector('.pr-name').value;
+    const ctx=c.querySelector('.pr-context').value;
+    const bullets=c.querySelector('.pr-bullets').value.split('\n').map(s=>s.trim()).filter(Boolean);
+    const block=document.createElement('div');
+    const row=document.createElement('div'); row.className='row-grid';
+    row.innerHTML=`<div><div class="org">${name}</div><div class="role">${ctx}</div></div><div class="place"></div>`;
+    block.appendChild(row);
+    if(bullets.length){
+      const ul=document.createElement('ul'); ul.className='bullets';
+      bullets.forEach(b=>{ const li=document.createElement('li'); li.textContent=b.replace(/^-+\s*/,''); ul.appendChild(li); });
+      block.appendChild(ul);
+    }
+    pv.appendChild(block);
+  });
+}
+
+/* ----- Simple lists (Certs/Awards/Activities/Languages) ----- */
+function addCert(pref={}){ addSimple('certList','pvCerts','pvCertList',pref.text||''); }
+function addAward(pref={}){ addSimple('awardList','pvAwards','pvAwardList',pref.text||''); }
+function addActivity(pref={}){ addSimple('actList','pvActs','pvActList',pref.text||''); }
+function addLanguage(pref={}){ addSimple('langList','pvLangs','pvLangList',pref.text||''); }
+function addSimple(formId,wrapId,listId,val){
+  const card=document.createElement('div'); card.className='section-card';
+  card.innerHTML=`
+    <label>Item</label>
+    <input class="simple-item" value="${val}" placeholder="e.g., First Aid & Basic Life Support (2024)">
+    <div style="margin-top:8px;"><button class="btn" onclick="this.closest('.section-card').remove(); renderSimple('${formId}','${wrapId}','${listId}');">Remove</button></div>`;
+  $(formId).appendChild(card);
+  card.querySelector('.simple-item').addEventListener('input',()=>renderSimple(formId,wrapId,listId));
+  renderSimple(formId,wrapId,listId);
+}
+function renderSimple(formId,wrapId,listId){
+  const items=Array.from($(formId).children);
+  const wrap=$(wrapId), ul=$(listId);
+  ul.innerHTML='';
+  if(items.length===0){ wrap.style.display='none'; return; }
+  wrap.style.display='';
+  items.forEach(c=>{
+    const t=(c.querySelector('.simple-item').value||'').trim();
+    if(t){ const li=document.createElement('li'); li.textContent=t; ul.appendChild(li); }
+  });
+}
+
+/* ----- Interests ----- */
+$('interests').addEventListener('input', ()=>{
+  const t=( $('interests').value || '' ).trim();
+  $('pvInterests').style.display = t ? '' : 'none';
+  $('pvInterestsText').textContent = t;
+});
+
+/* ----- Custom Sections ----- */
+function addCustomSection(pref = {}) {
+  const card = document.createElement('div');
+  card.className = 'section-card';
+  card.innerHTML = `
+    <label>Section Title</label>
+    <input class="cs-title" value="${pref.title || ''}" placeholder="e.g., Volunteer Work">
+    <label>Content (one bullet per line)</label>
+    <textarea class="cs-lines" placeholder="- Bullet 1
+- Bullet 2
+- Bullet 3">${(pref.lines || []).join('\n')}</textarea>
+    <div style="margin-top:8px;">
+      <button class="btn" onclick="this.closest('.section-card').remove(); renderCustomSections();">Remove</button>
+    </div>`;
+  document.getElementById('customList').appendChild(card);
+  card.querySelectorAll('input,textarea').forEach(el => el.addEventListener('input', renderCustomSections));
+  renderCustomSections();
+}
+function renderCustomSections() {
+  const wrap = document.getElementById('pvCustomSections');
+  wrap.innerHTML = '';
+  const cards = Array.from(document.getElementById('customList').children);
+  cards.forEach(c => {
+    const title = (c.querySelector('.cs-title').value || '').trim();
+    const lines = (c.querySelector('.cs-lines').value || '')
+      .split('\n').map(s => s.replace(/^-+\s*/, '').trim()).filter(Boolean);
+    if (!title && !lines.length) return;
+    const sec = document.createElement('section'); sec.className = 'section-pv';
+    if (title) {
+      const h = document.createElement('div'); h.className = 'section-title'; h.textContent = title; sec.appendChild(h);
+    }
+    if (lines.length) {
+      const ul = document.createElement('ul'); ul.className = 'bullets';
+      lines.forEach(t => { const li = document.createElement('li'); li.textContent = t; ul.appendChild(li); });
+      sec.appendChild(ul);
+    }
+    wrap.appendChild(sec);
+  });
+}
+
+/* ================= Sample (Lorem Ipsum) + Clear ================= */
+function fillSample(){
+  // Header
+  $('name').value = "LOREM IPSUM";
+  $('loc').value = "Dolor Sit, Amet";
+  $('phone').value = "+00 000 000 0000";
+  $('email').value = "lorem.ipsum@example.com";
+  $('portfolio').value = "loremipsum.example";
+  $('linkedin').value = "linkedin.com/in/loremipsum";
+  $('otherlink').value = "behance.net/loremipsum";
+
+  // Summary
+  $('summary').value =
+    "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer imperdiet metus vitae dictum congue. " +
+    "Suspendisse potenti. Cras vitae neque non ipsum mattis posuere.";
+
+  // Reset dynamic lists
+  ['skillsList','eduList','expList','projList','certList','awardList','actList','langList','customList']
+    .forEach(id => $(id).innerHTML = "");
+
+  // Skills
+  addSkillCategory({label:"Core",  items:"Lorem, Ipsum, Dolor, Sit, Amet"});
+  addSkillCategory({label:"Tools", items:"Consectetur, Adipiscing, Elit, Integer"});
+  addSkillCategory({label:"Soft",  items:"Commodo, Gravida, Vulputate, Pulvinar"});
+
+  // Education
+  addEdu({
+    school:"Universitas Lorem Ipsum",
+    degree:"B.S. Dolor Sit Amet",
+    place:"Consectetur, EL",
+    start:"2019",
+    end:"2023",
+    notes:"Cum laude; cursus ligula nisi, bibendum sed mi."
+  });
+  addEdu({
+    school:"Academia Adipiscing",
+    degree:"Diploma in Elit",
+    place:"Vitae, MT",
+    start:"2017",
+    end:"2019",
+    notes:"Integer fermentum sem vel ultricies placerat."
+  });
+
+  // Experience
+  addExp({
+    org:"Lorem Incorporated",
+    role:"Ipsum Specialist",
+    place:"Dolor, ST",
+    start:"2023",
+    end:"Present",
+    bullets:[
+      "Curabitur vehicula nunc a lorem interdum, at iaculis elit porttitor.",
+      "Phasellus dictum orci vitae arcu cursus, quis dictum libero sagittis.",
+      "Suspendisse potenti; sed at sapien ac justo convallis varius."
+    ]
+  });
+  addExp({
+    org:"Amet Solutions",
+    role:"Consectetur Associate",
+    place:"Adipiscing, EL",
+    start:"2021",
+    end:"2022",
+    bullets:[
+      "Etiam ut urna id nibh feugiat lacinia.",
+      "Mauris euismod urna sit amet sem vulputate congue."
+    ]
+  });
+
+  // Projects
+  addProj({
+    name:"Project Lorem",
+    context:"Personal",
+    bullets:[
+      "Aliquam erat volutpat; sed laoreet tortor eu lorem vulputate.",
+      "Nunc at sapien vulputate, mattis tortor a, congue arcu."
+    ]
+  });
+
+  // Simple lists
+  addCert({text:"Certificatio Lorem (2024)"});
+  addAward({text:"Praemium Ipsum (2023)"});
+  addActivity({text:"Voluntarius, Club Lorem (2022–2023)"});
+  addLanguage({text:"English"}); addLanguage({text:"Latin (basic)"}); addLanguage({text:"Filipino"});
+
+  // Interests
+  $('interests').value = "Lectio, consilium, cycling, photographia";
+
+  // Custom section
+  addCustomSection({
+    title:"Publicationes",
+    lines:[
+      "“Dolor Sit Amet” — Journal of Lorem, 2024",
+      "“Consectetur Adipiscing Elit” — Ipsum Review, 2023"
+    ]
+  });
+
+  // Re-render preview
+  (function refreshAll(){
+    updateHeader();
+    updateSummary();
+    renderSkills();
+    renderEdu();
+    renderExp();
+    renderProj();
+    renderSimple('certList','pvCerts','pvCertList');
+    renderSimple('awardList','pvAwards','pvAwardList');
+    renderSimple('actList','pvActs','pvActList');
+    renderSimple('langList','pvLangs','pvLangList');
+    $('pvInterests').style.display = $('interests').value.trim() ? '' : 'none';
+    $('pvInterestsText').textContent = $('interests').value;
+    renderCustomSections();
+  })();
+
+  go(0);
+}
+function clearAll(){
+  document.querySelectorAll('input,textarea').forEach(el=> el.value="");
+  ['skillsList','eduList','expList','projList','certList','awardList','actList','langList','customList'].forEach(id=> $(id).innerHTML="");
+  ['pvSkills','pvEducation','pvExperience','pvProjects','pvCerts','pvAwards','pvActs','pvLangs','pvInterests','pvSummaryWrap'].forEach(id=> $(id).style.display="none");
+  $('pvName').textContent="YOUR NAME";
+  $('pvContact').textContent="Location • Phone • email@example.com • website • LinkedIn";
+  ['pvEduList','pvExpList','pvProjList','pvSkillsList','pvCertList','pvAwardList','pvActList','pvLangs','pvInterestsText','pvCustomSections'].forEach(id=> $(id).innerHTML="");
+  go(0);
+}
+
+/* Init minimal */
+updateHeader(); updateSummary();
+</script>
+</body>
+</html>
