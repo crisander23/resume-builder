@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>cLASSIC RESUME BUILDER</title>
+<title>CLASSIC RESUME BUILDER + AI</title>
 <style>
   /* ================= Theme Tokens ================= */
   :root{
@@ -20,7 +20,7 @@
 
     --radius:16px;
   }
-  /* Light mode overrides (keeps --btn-primary same) */
+  /* Light mode overrides */
   :root[data-theme="light"]{
     --bg:#f5f7fb;
     --ink:#0f172a;
@@ -89,7 +89,9 @@
     white-space:nowrap; padding:8px 12px; border-radius:999px; cursor:pointer;
     border:1px solid var(--border); background:var(--btn-surface); color:var(--ink); font-weight:600; font-size:12px;
   }
-  .tab.active{ outline:2px solid var(--border); }
+  .tab.active{ outline:2px solid var(--border); background:var(--btn-primary); color:#fff; }
+  .tab.magic{ border-color: #8b5cf6; color: #a78bfa; } 
+  .tab.magic.active { background: #7c3aed; color: #fff; }
 
   .slides{ position:relative; overflow:hidden; border-radius:12px; border:1px solid var(--border); }
   .rail{ display:flex; transition:transform .3s ease; will-change:transform; }
@@ -150,26 +152,14 @@
 </head>
 <body>
   <div class="wrap">
-    <!-- =============== LEFT: FORM =============== -->
     <div class="panel">
       <div class="panel-header">
-        <div class="title">cLASSIC RESUME BUILDER</div>
+        <div class="title">AI RESUME BUILDER</div>
         <div class="controls">
-          <!-- Icon-only theme toggle -->
-          <button id="modeBtn" class="icon-btn" aria-label="Toggle theme" title="Toggle theme">
-            <!-- sun -->
-            <svg class="icon icon--moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                 stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-              <circle cx="12" cy="12" r="4"></circle>
-              <path d="M12 2v2m0 16v2m10-10h-2M4 12H2m15.54 6.46-1.41-1.41M7.88 7.88 6.46 6.46m10.96 0-1.42 1.42M7.88 16.12 6.46 17.54"></path>
-            </svg>
-            <!-- moon -->
-            <svg class="icon icon--sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                 stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-              <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
-            </svg>
+          <button id="modeBtn" class="icon-btn" aria-label="Toggle theme">
+            <svg class="icon icon--moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2m0 16v2m10-10h-2M4 12H2m15.54 6.46-1.41-1.41M7.88 7.88 6.46 6.46m10.96 0-1.42 1.42M7.88 16.12 6.46 17.54"></path></svg>
+            <svg class="icon icon--sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
           </button>
-
           <button class="btn" onclick="fillSample()">Sample</button>
           <button class="btn" onclick="clearAll()">Clear</button>
           <button class="btn primary" onclick="window.print()">Save PDF</button>
@@ -177,26 +167,35 @@
       </div>
 
       <div class="tabs" id="tabs">
-        <button class="tab active" data-i="0">Header</button>
-        <button class="tab" data-i="1">Summary</button>
-        <button class="tab" data-i="2">Skills</button>
-        <button class="tab" data-i="3">Education</button>
-        <button class="tab" data-i="4">Experience</button>
-        <button class="tab" data-i="5">Projects</button>
-        <button class="tab" data-i="6">Certs</button>
-        <button class="tab" data-i="7">Awards</button>
-        <button class="tab" data-i="8">Activities</button>
-        <button class="tab" data-i="9">Languages</button>
-        <button class="tab" data-i="10">Interests</button>
-        <button class="tab" data-i="11">Custom</button>
+        <button class="tab magic active" data-i="0">✨ AI Writer</button>
+        <button class="tab" data-i="1">Header</button>
+        <button class="tab" data-i="2">Summary</button>
+        <button class="tab" data-i="3">Skills</button>
+        <button class="tab" data-i="4">Education</button>
+        <button class="tab" data-i="5">Experience</button>
+        <button class="tab" data-i="6">Projects</button>
+        <button class="tab" data-i="7">Certs</button>
+        <button class="tab" data-i="8">Awards</button>
+        <button class="tab" data-i="9">Activities</button>
+        <button class="tab" data-i="10">Languages</button>
+        <button class="tab" data-i="11">Interests</button>
+        <button class="tab" data-i="12">Custom</button>
       </div>
 
       <div class="slides">
         <div id="rail" class="rail">
-          <!-- 0: Header -->
+          
+          <section class="section">
+             <h3>AI Resume Generator</h3>
+             <div class="muted">Paste the Job Description below. The AI will create a targeted resume for you.</div>
+             <label>Job Description</label>
+             <textarea id="jobDesc" style="height:200px" placeholder="Paste the job post here..."></textarea>
+             <button class="btn primary" id="aiBtn" onclick="generateAI()">⚡ Generate Resume</button>
+             <p class="muted" style="margin-top:10px">Note: This will clear current fields and fill them with AI suggestions.</p>
+          </section>
+
           <section class="section">
             <h3>Header / Contact</h3>
-            <div class="muted">Your name and how to reach you.</div>
             <label>Name</label><input id="name" placeholder="Your Full Name" />
             <div class="row">
               <div><label>Location</label><input id="loc" placeholder="City, Country" /></div>
@@ -212,83 +211,67 @@
             </div>
           </section>
 
-          <!-- 1: Summary -->
           <section class="section">
             <h3>Summary</h3>
-            <div class="muted">2–3 lines: who you are, strengths, value.</div>
             <label>Summary</label>
             <textarea id="summary" placeholder="Short professional overview."></textarea>
           </section>
 
-          <!-- 2: Skills -->
           <section class="section">
             <h3>Skills</h3>
-            <div class="muted">Group skills into categories (Core, Tools, Soft Skills).</div>
             <div id="skillsList"></div>
             <div><button class="btn" onclick="addSkillCategory()">+ Add Skill Category</button></div>
           </section>
 
-          <!-- 3: Education -->
           <section class="section">
             <h3>Education</h3>
-            <div class="muted">Schools, programs, dates, and notes (GPA/honors).</div>
             <div id="eduList"></div>
             <div><button class="btn" onclick="addEdu()">+ Add Education</button></div>
           </section>
 
-          <!-- 4: Experience -->
           <section class="section">
             <h3>Experience</h3>
-            <div class="muted">Use impact bullets. Start with verbs; add numbers.</div>
             <div id="expList"></div>
             <div><button class="btn" onclick="addExp()">+ Add Experience</button></div>
           </section>
 
-          <!-- 5: Projects -->
           <section class="section">
             <h3>Projects / Portfolio</h3>
             <div id="projList"></div>
             <div><button class="btn" onclick="addProj()">+ Add Project</button></div>
           </section>
 
-          <!-- 6: Certifications -->
           <section class="section">
             <h3>Certifications</h3>
             <div id="certList"></div>
             <button class="btn" onclick="addCert()">+ Add Certification</button>
           </section>
 
-          <!-- 7: Awards -->
           <section class="section">
             <h3>Awards</h3>
             <div id="awardList"></div>
             <button class="btn" onclick="addAward()">+ Add Award</button>
           </section>
 
-          <!-- 8: Activities -->
           <section class="section">
             <h3>Activities & Leadership</h3>
             <div id="actList"></div>
             <button class="btn" onclick="addActivity()">+ Add Activity</button>
           </section>
 
-          <!-- 9: Languages -->
           <section class="section">
             <h3>Languages</h3>
             <div id="langList"></div>
             <button class="btn" onclick="addLanguage()">+ Add Language</button>
           </section>
 
-          <!-- 10: Interests -->
           <section class="section">
             <h3>Interests</h3>
             <textarea id="interests" placeholder="Hobbies, interests, or volunteer focus."></textarea>
           </section>
 
-          <!-- 11: Custom Sections -->
           <section class="section">
             <h3>Custom Sections</h3>
-            <div class="muted">Create any section (Volunteer Work, Publications, Trainings, etc.).</div>
             <div id="customList"></div>
             <div style="margin-top:8px;">
               <button class="btn" onclick="addCustomSection()">+ Add Custom Section</button>
@@ -303,7 +286,6 @@
       </div>
     </div>
 
-    <!-- =============== RIGHT: PREVIEW =============== -->
     <div class="preview">
       <div class="page" id="page">
         <header>
@@ -362,14 +344,119 @@
           <div id="pvInterestsText"></div>
         </section>
 
-        <!-- Custom sections render here -->
         <div id="pvCustomSections"></div>
       </div>
     </div>
   </div>
 
 <script>
-/* ================= Theme Toggle (icon) ================= */
+/* ========= GEMINI AI INTEGRATION ========= */
+// ⚠️ PASTE YOUR NEW API KEY BELOW
+const GEMINI_API_KEY = "AIzaSyCvx5hRPrAK7E2w3F9u0v08awGefn_48Y4";
+
+async function generateAI() {
+  const jobDesc = document.getElementById('jobDesc').value.trim();
+  const btn = document.getElementById('aiBtn');
+  
+  if (!jobDesc) {
+    alert("Please paste a job description first.");
+    return;
+  }
+  if (GEMINI_API_KEY.includes("PASTE_YOUR")) {
+    alert("Please update the code with your valid Gemini API Key.");
+    return;
+  }
+
+  btn.textContent = "Generating...";
+  btn.disabled = true;
+
+  const prompt = `
+    You are an expert Resume Writer. 
+    Based on the JOB DESCRIPTION below, create a complete, professional resume in valid JSON format.
+    Invent a realistic persona (Name, Edu, Exp) that perfectly fits the job.
+    
+    STRICT JSON OUTPUT ONLY. No Markdown. No code blocks.
+    Structure matches these specific fields:
+    {
+      "name": "Full Name",
+      "location": "City, Country",
+      "phone": "+1 555...",
+      "email": "email@example.com",
+      "linkedin": "linkedin.com/in/...",
+      "summary": "Professional summary optimized for the job.",
+      "skills": [
+        { "category": "Core Skills", "items": "Java, Python, SQL" },
+        { "category": "Tools", "items": "Git, Docker, JIRA" }
+      ],
+      "education": [
+        { "school": "University Name", "degree": "Degree Name", "location": "City, State", "start": "2018", "end": "2022", "notes": "Relevant coursework..." }
+      ],
+      "experience": [
+        { "org": "Company A", "role": "Job Title", "location": "City", "start": "2023", "end": "Present", "bullets": ["Action verb result 1", "Action verb result 2"] },
+        { "org": "Company B", "role": "Previous Title", "location": "City", "start": "2020", "end": "2023", "bullets": ["Action verb result 1", "Action verb result 2"] }
+      ],
+      "projects": [
+         { "name": "Project Name", "context": "Personal/Freelance", "bullets": ["Description of what was built"] }
+      ],
+      "certifications": ["Cert Name (Year)"],
+      "languages": ["Language 1", "Language 2"]
+    }
+
+    JOB DESCRIPTION:
+    ${jobDesc}
+  `;
+
+  try {
+    const response = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
+      }
+    );
+
+    if (!response.ok) throw new Error("API Failed");
+
+    const data = await response.json();
+    let text = data.candidates[0].content.parts[0].text;
+    text = text.replace(/```json|```/g, "").trim(); // Clean markdown
+    const json = JSON.parse(text);
+
+    // CLEAR CURRENT
+    clearAll();
+
+    // POPULATE FIELDS
+    document.getElementById('name').value = json.name || "";
+    document.getElementById('loc').value = json.location || "";
+    document.getElementById('phone').value = json.phone || "";
+    document.getElementById('email').value = json.email || "";
+    document.getElementById('linkedin').value = json.linkedin || "";
+    document.getElementById('summary').value = json.summary || "";
+
+    // Populate Lists using existing helper functions
+    (json.skills || []).forEach(s => addSkillCategory({ label: s.category, items: s.items }));
+    (json.education || []).forEach(e => addEdu({ school: e.school, degree: e.degree, place: e.location, start: e.start, end: e.end, notes: e.notes }));
+    (json.experience || []).forEach(e => addExp({ org: e.org, role: e.role, place: e.location, start: e.start, end: e.end, bullets: e.bullets }));
+    (json.projects || []).forEach(p => addProj({ name: p.name, context: p.context, bullets: p.bullets }));
+    (json.certifications || []).forEach(c => addCert({ text: c }));
+    (json.languages || []).forEach(l => addLanguage({ text: l }));
+
+    // Trigger updates
+    updateHeader();
+    updateSummary();
+    
+    // Switch to Header Tab to show result
+    go(1);
+    alert("Resume Generated! Please review the tabs.");
+
+  } finally {
+    btn.textContent = "⚡ Generate Resume";
+    btn.disabled = false;
+  }
+}
+
+/* ================= THEME & UI LOGIC (Original) ================= */
 (function initTheme(){
   const saved = localStorage.getItem('resume_theme');
   if(saved){ document.documentElement.setAttribute('data-theme', saved); }
@@ -381,7 +468,6 @@
   });
 })();
 
-/* ================= Tabs / Slides ================= */
 const rail = document.getElementById('rail');
 const tabs = Array.from(document.querySelectorAll('.tab'));
 let step = 0;
@@ -393,10 +479,14 @@ function go(i){
 tabs.forEach(t => t.addEventListener('click', ()=> go(parseInt(t.dataset.i,10))));
 document.getElementById('prevBtn').addEventListener('click', ()=> go(step-1));
 document.getElementById('nextBtn').addEventListener('click', ()=> go(step+1));
-addEventListener('keydown', (e)=>{ if(e.key==='ArrowRight') go(step+1); if(e.key==='ArrowLeft') go(step-1); });
-go(0);
+addEventListener('keydown', (e)=>{ 
+  // Disable arrow keys if typing in textarea
+  if(e.target.tagName === 'TEXTAREA' || e.target.tagName === 'INPUT') return;
+  if(e.key==='ArrowRight') go(step+1); 
+  if(e.key==='ArrowLeft') go(step-1); 
+});
+go(0); // Start at AI Tab
 
-/* ================= Helpers ================= */
 const $ = (id)=>document.getElementById(id);
 const esc = (s)=> (s||"").toString();
 
@@ -434,10 +524,10 @@ function addSkillCategory(pref={}){
   const wrap = document.createElement('div');
   wrap.className = 'section-card';
   wrap.innerHTML = `
-    <label>Category Label (e.g., Core, Tools, Soft Skills)</label>
+    <label>Category Label</label>
     <input class="sk-label" value="${pref.label||''}" placeholder="Category name">
-    <label>Items (comma-separated)</label>
-    <input class="sk-items" value="${pref.items||''}" placeholder="e.g., Communication, Reporting, Customer Service">
+    <label>Items</label>
+    <input class="sk-items" value="${pref.items||''}" placeholder="e.g., Item 1, Item 2">
     <div style="margin-top:8px;">
       <button class="btn" onclick="this.closest('.section-card').remove(); renderSkills();">Remove</button>
     </div>`;
@@ -464,18 +554,18 @@ function addEdu(pref={}){
   const card=document.createElement('div'); card.className='section-card';
   card.innerHTML=`
     <div class="row">
-      <div><label>School</label><input class="ed-school" value="${pref.school||''}" placeholder="University / College"></div>
-      <div><label>Degree / Program</label><input class="ed-degree" value="${pref.degree||''}" placeholder="e.g., BS Business Administration"></div>
+      <div><label>School</label><input class="ed-school" value="${pref.school||''}" placeholder="University"></div>
+      <div><label>Degree</label><input class="ed-degree" value="${pref.degree||''}" placeholder="Degree"></div>
     </div>
     <div class="row">
       <div><label>Location</label><input class="ed-place" value="${pref.place||''}" placeholder="City, Country"></div>
       <div class="row">
-        <div><label>Start</label><input class="ed-start" value="${pref.start||''}" placeholder="2019"></div>
-        <div><label>End</label><input class="ed-end" value="${pref.end||''}" placeholder="2023"></div>
+        <div><label>Start</label><input class="ed-start" value="${pref.start||''}" placeholder="Year"></div>
+        <div><label>End</label><input class="ed-end" value="${pref.end||''}" placeholder="Year"></div>
       </div>
     </div>
-    <label>Notes (GPA, honors, activities)</label>
-    <textarea class="ed-notes" placeholder="GPA, honors, coursework">${pref.notes||''}</textarea>
+    <label>Notes</label>
+    <textarea class="ed-notes" placeholder="GPA, honors">${pref.notes||''}</textarea>
     <div style="margin-top:8px;"><button class="btn" onclick="this.closest('.section-card').remove(); renderEdu();">Remove</button></div>`;
   $('eduList').appendChild(card);
   card.querySelectorAll('input,textarea').forEach(el=>el.addEventListener('input', renderEdu));
@@ -507,19 +597,18 @@ function addExp(pref={}){
   const card=document.createElement('div'); card.className='section-card';
   card.innerHTML=`
     <div class="row">
-      <div><label>Organization</label><input class="ex-org" value="${pref.org||''}" placeholder="Company / Organization"></div>
-      <div><label>Role / Title</label><input class="ex-role" value="${pref.role||''}" placeholder="e.g., Operations Associate"></div>
+      <div><label>Organization</label><input class="ex-org" value="${pref.org||''}" placeholder="Company"></div>
+      <div><label>Role</label><input class="ex-role" value="${pref.role||''}" placeholder="Title"></div>
     </div>
     <div class="row">
-      <div><label>Location</label><input class="ex-place" value="${pref.place||''}" placeholder="City, Country"></div>
+      <div><label>Location</label><input class="ex-place" value="${pref.place||''}" placeholder="City"></div>
       <div class="row">
-        <div><label>Start</label><input class="ex-start" value="${pref.start||''}" placeholder="2022"></div>
+        <div><label>Start</label><input class="ex-start" value="${pref.start||''}" placeholder="Year"></div>
         <div><label>End</label><input class="ex-end" value="${pref.end||''}" placeholder="Present"></div>
       </div>
     </div>
-    <label>Bullets (one per line)</label>
-    <textarea class="ex-bullets" placeholder="- Use action verbs and numbers
-- e.g., Processed 50+ customer requests weekly with 95% satisfaction">${(pref.bullets||[]).join('\n')}</textarea>
+    <label>Bullets</label>
+    <textarea class="ex-bullets" placeholder="- Achieved X...">${(pref.bullets||[]).join('\n')}</textarea>
     <div style="margin-top:8px;"><button class="btn" onclick="this.closest('.section-card').remove(); renderExp();">Remove</button></div>`;
   $('expList').appendChild(card);
   card.querySelectorAll('input,textarea').forEach(el=>el.addEventListener('input', renderExp));
@@ -557,11 +646,11 @@ function addProj(pref={}){
   const card=document.createElement('div'); card.className='section-card';
   card.innerHTML=`
     <div class="row">
-      <div><label>Project / Portfolio Item</label><input class="pr-name" value="${pref.name||''}" placeholder="Title"></div>
-      <div><label>Context</label><input class="pr-context" value="${pref.context||''}" placeholder="e.g., Volunteer, Academic, Freelance"></div>
+      <div><label>Project Name</label><input class="pr-name" value="${pref.name||''}" placeholder="Title"></div>
+      <div><label>Context</label><input class="pr-context" value="${pref.context||''}" placeholder="e.g., Personal"></div>
     </div>
-    <label>Bullets (one per line)</label>
-    <textarea class="pr-bullets" placeholder="- What you did and what happened">${(pref.bullets||[]).join('\n')}</textarea>
+    <label>Bullets</label>
+    <textarea class="pr-bullets" placeholder="- Description">${(pref.bullets||[]).join('\n')}</textarea>
     <div style="margin-top:8px;"><button class="btn" onclick="this.closest('.section-card').remove(); renderProj();">Remove</button></div>`;
   $('projList').appendChild(card);
   card.querySelectorAll('input,textarea').forEach(el=>el.addEventListener('input', renderProj));
@@ -590,7 +679,7 @@ function renderProj(){
   });
 }
 
-/* ----- Simple lists (Certs/Awards/Activities/Languages) ----- */
+/* ----- Simple lists ----- */
 function addCert(pref={}){ addSimple('certList','pvCerts','pvCertList',pref.text||''); }
 function addAward(pref={}){ addSimple('awardList','pvAwards','pvAwardList',pref.text||''); }
 function addActivity(pref={}){ addSimple('actList','pvActs','pvActList',pref.text||''); }
@@ -599,7 +688,7 @@ function addSimple(formId,wrapId,listId,val){
   const card=document.createElement('div'); card.className='section-card';
   card.innerHTML=`
     <label>Item</label>
-    <input class="simple-item" value="${val}" placeholder="e.g., First Aid & Basic Life Support (2024)">
+    <input class="simple-item" value="${val}" placeholder="Description">
     <div style="margin-top:8px;"><button class="btn" onclick="this.closest('.section-card').remove(); renderSimple('${formId}','${wrapId}','${listId}');">Remove</button></div>`;
   $(formId).appendChild(card);
   card.querySelector('.simple-item').addEventListener('input',()=>renderSimple(formId,wrapId,listId));
@@ -629,12 +718,10 @@ function addCustomSection(pref = {}) {
   const card = document.createElement('div');
   card.className = 'section-card';
   card.innerHTML = `
-    <label>Section Title</label>
-    <input class="cs-title" value="${pref.title || ''}" placeholder="e.g., Volunteer Work">
-    <label>Content (one bullet per line)</label>
-    <textarea class="cs-lines" placeholder="- Bullet 1
-- Bullet 2
-- Bullet 3">${(pref.lines || []).join('\n')}</textarea>
+    <label>Title</label>
+    <input class="cs-title" value="${pref.title || ''}" placeholder="Section Title">
+    <label>Content</label>
+    <textarea class="cs-lines" placeholder="- Bullets...">${(pref.lines || []).join('\n')}</textarea>
     <div style="margin-top:8px;">
       <button class="btn" onclick="this.closest('.section-card').remove(); renderCustomSections();">Remove</button>
     </div>`;
@@ -664,121 +751,23 @@ function renderCustomSections() {
   });
 }
 
-/* ================= Sample (Lorem Ipsum) + Clear ================= */
+/* ================= CLEAR & SAMPLE ================= */
 function fillSample(){
-  // Header
+  clearAll();
   $('name').value = "LOREM IPSUM";
-  $('loc').value = "Dolor Sit, Amet";
-  $('phone').value = "+00 000 000 0000";
-  $('email').value = "lorem.ipsum@example.com";
-  $('portfolio').value = "loremipsum.example";
-  $('linkedin').value = "linkedin.com/in/loremipsum";
-  $('otherlink').value = "behance.net/loremipsum";
-
-  // Summary
-  $('summary').value =
-    "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer imperdiet metus vitae dictum congue. " +
-    "Suspendisse potenti. Cras vitae neque non ipsum mattis posuere.";
-
-  // Reset dynamic lists
-  ['skillsList','eduList','expList','projList','certList','awardList','actList','langList','customList']
-    .forEach(id => $(id).innerHTML = "");
-
-  // Skills
-  addSkillCategory({label:"Core",  items:"Lorem, Ipsum, Dolor, Sit, Amet"});
-  addSkillCategory({label:"Tools", items:"Consectetur, Adipiscing, Elit, Integer"});
-  addSkillCategory({label:"Soft",  items:"Commodo, Gravida, Vulputate, Pulvinar"});
-
-  // Education
-  addEdu({
-    school:"Universitas Lorem Ipsum",
-    degree:"B.S. Dolor Sit Amet",
-    place:"Consectetur, EL",
-    start:"2019",
-    end:"2023",
-    notes:"Cum laude; cursus ligula nisi, bibendum sed mi."
-  });
-  addEdu({
-    school:"Academia Adipiscing",
-    degree:"Diploma in Elit",
-    place:"Vitae, MT",
-    start:"2017",
-    end:"2019",
-    notes:"Integer fermentum sem vel ultricies placerat."
-  });
-
-  // Experience
-  addExp({
-    org:"Lorem Incorporated",
-    role:"Ipsum Specialist",
-    place:"Dolor, ST",
-    start:"2023",
-    end:"Present",
-    bullets:[
-      "Curabitur vehicula nunc a lorem interdum, at iaculis elit porttitor.",
-      "Phasellus dictum orci vitae arcu cursus, quis dictum libero sagittis.",
-      "Suspendisse potenti; sed at sapien ac justo convallis varius."
-    ]
-  });
-  addExp({
-    org:"Amet Solutions",
-    role:"Consectetur Associate",
-    place:"Adipiscing, EL",
-    start:"2021",
-    end:"2022",
-    bullets:[
-      "Etiam ut urna id nibh feugiat lacinia.",
-      "Mauris euismod urna sit amet sem vulputate congue."
-    ]
-  });
-
-  // Projects
-  addProj({
-    name:"Project Lorem",
-    context:"Personal",
-    bullets:[
-      "Aliquam erat volutpat; sed laoreet tortor eu lorem vulputate.",
-      "Nunc at sapien vulputate, mattis tortor a, congue arcu."
-    ]
-  });
-
-  // Simple lists
-  addCert({text:"Certificatio Lorem (2024)"});
-  addAward({text:"Praemium Ipsum (2023)"});
-  addActivity({text:"Voluntarius, Club Lorem (2022–2023)"});
-  addLanguage({text:"English"}); addLanguage({text:"Latin (basic)"}); addLanguage({text:"Filipino"});
-
-  // Interests
-  $('interests').value = "Lectio, consilium, cycling, photographia";
-
-  // Custom section
-  addCustomSection({
-    title:"Publicationes",
-    lines:[
-      "“Dolor Sit Amet” — Journal of Lorem, 2024",
-      "“Consectetur Adipiscing Elit” — Ipsum Review, 2023"
-    ]
-  });
-
-  // Re-render preview
-  (function refreshAll(){
-    updateHeader();
-    updateSummary();
-    renderSkills();
-    renderEdu();
-    renderExp();
-    renderProj();
-    renderSimple('certList','pvCerts','pvCertList');
-    renderSimple('awardList','pvAwards','pvAwardList');
-    renderSimple('actList','pvActs','pvActList');
-    renderSimple('langList','pvLangs','pvLangList');
-    $('pvInterests').style.display = $('interests').value.trim() ? '' : 'none';
-    $('pvInterestsText').textContent = $('interests').value;
-    renderCustomSections();
-  })();
-
-  go(0);
+  $('loc').value = "City, Country";
+  $('phone').value = "+1 555 0123";
+  $('email').value = "lorem@example.com";
+  
+  $('summary').value = "Experienced professional with a demonstrated history of working in the industry.";
+  
+  addSkillCategory({label:"Core", items:"Leadership, Strategy"});
+  addEdu({ school:"University of Example", degree:"B.S. Science", start:"2015", end:"2019" });
+  addExp({ org:"Example Corp", role:"Manager", start:"2020", end:"Present", bullets:["Led a team of 5", "Increased revenue by 20%"] });
+  
+  updateHeader(); updateSummary(); go(1);
 }
+
 function clearAll(){
   document.querySelectorAll('input,textarea').forEach(el=> el.value="");
   ['skillsList','eduList','expList','projList','certList','awardList','actList','langList','customList'].forEach(id=> $(id).innerHTML="");
@@ -786,11 +775,11 @@ function clearAll(){
   $('pvName').textContent="YOUR NAME";
   $('pvContact').textContent="Location • Phone • email@example.com • website • LinkedIn";
   ['pvEduList','pvExpList','pvProjList','pvSkillsList','pvCertList','pvAwardList','pvActList','pvLangs','pvInterestsText','pvCustomSections'].forEach(id=> $(id).innerHTML="");
-  go(0);
 }
 
-/* Init minimal */
-updateHeader(); updateSummary();
+/* Init */
+updateHeader(); 
+updateSummary();
 </script>
 </body>
 </html>
