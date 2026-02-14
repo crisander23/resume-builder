@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>CLASSIC RESUME BUILDER + AI</title>
+<title>CLASSIC RESUME BUILDER</title>
 <style>
   /* ================= Theme Tokens ================= */
   :root{
@@ -90,8 +90,6 @@
     border:1px solid var(--border); background:var(--btn-surface); color:var(--ink); font-weight:600; font-size:12px;
   }
   .tab.active{ outline:2px solid var(--border); background:var(--btn-primary); color:#fff; }
-  .tab.magic{ border-color: #8b5cf6; color: #a78bfa; } 
-  .tab.magic.active { background: #7c3aed; color: #fff; }
 
   .slides{ position:relative; overflow:hidden; border-radius:12px; border:1px solid var(--border); }
   .rail{ display:flex; transition:transform .3s ease; will-change:transform; }
@@ -154,7 +152,7 @@
   <div class="wrap">
     <div class="panel">
       <div class="panel-header">
-        <div class="title">AI RESUME BUILDER</div>
+        <div class="title">RESUME BUILDER</div>
         <div class="controls">
           <button id="modeBtn" class="icon-btn" aria-label="Toggle theme">
             <svg class="icon icon--moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2m0 16v2m10-10h-2M4 12H2m15.54 6.46-1.41-1.41M7.88 7.88 6.46 6.46m10.96 0-1.42 1.42M7.88 16.12 6.46 17.54"></path></svg>
@@ -167,33 +165,23 @@
       </div>
 
       <div class="tabs" id="tabs">
-        <button class="tab magic active" data-i="0">✨ AI Writer</button>
-        <button class="tab" data-i="1">Header</button>
-        <button class="tab" data-i="2">Summary</button>
-        <button class="tab" data-i="3">Skills</button>
-        <button class="tab" data-i="4">Education</button>
-        <button class="tab" data-i="5">Experience</button>
-        <button class="tab" data-i="6">Projects</button>
-        <button class="tab" data-i="7">Certs</button>
-        <button class="tab" data-i="8">Awards</button>
-        <button class="tab" data-i="9">Activities</button>
-        <button class="tab" data-i="10">Languages</button>
-        <button class="tab" data-i="11">Interests</button>
-        <button class="tab" data-i="12">Custom</button>
+        <button class="tab active" data-i="0">Header</button>
+        <button class="tab" data-i="1">Summary</button>
+        <button class="tab" data-i="2">Skills</button>
+        <button class="tab" data-i="3">Education</button>
+        <button class="tab" data-i="4">Experience</button>
+        <button class="tab" data-i="5">Projects</button>
+        <button class="tab" data-i="6">Certs</button>
+        <button class="tab" data-i="7">Awards</button>
+        <button class="tab" data-i="8">Activities</button>
+        <button class="tab" data-i="9">Languages</button>
+        <button class="tab" data-i="10">Interests</button>
+        <button class="tab" data-i="11">Custom</button>
       </div>
 
       <div class="slides">
         <div id="rail" class="rail">
           
-          <section class="section">
-             <h3>AI Resume Generator</h3>
-             <div class="muted">Paste the Job Description below. The AI will create a targeted resume for you.</div>
-             <label>Job Description</label>
-             <textarea id="jobDesc" style="height:200px" placeholder="Paste the job post here..."></textarea>
-             <button class="btn primary" id="aiBtn" onclick="generateAI()">⚡ Generate Resume</button>
-             <p class="muted" style="margin-top:10px">Note: This will clear current fields and fill them with AI suggestions.</p>
-          </section>
-
           <section class="section">
             <h3>Header / Contact</h3>
             <label>Name</label><input id="name" placeholder="Your Full Name" />
@@ -350,113 +338,7 @@
   </div>
 
 <script>
-/* ========= GEMINI AI INTEGRATION ========= */
-// ⚠️ PASTE YOUR NEW API KEY BELOW
-const GEMINI_API_KEY = "AIzaSyCvx5hRPrAK7E2w3F9u0v08awGefn_48Y4";
-
-async function generateAI() {
-  const jobDesc = document.getElementById('jobDesc').value.trim();
-  const btn = document.getElementById('aiBtn');
-  
-  if (!jobDesc) {
-    alert("Please paste a job description first.");
-    return;
-  }
-  if (GEMINI_API_KEY.includes("PASTE_YOUR")) {
-    alert("Please update the code with your valid Gemini API Key.");
-    return;
-  }
-
-  btn.textContent = "Generating...";
-  btn.disabled = true;
-
-  const prompt = `
-    You are an expert Resume Writer. 
-    Based on the JOB DESCRIPTION below, create a complete, professional resume in valid JSON format.
-    Invent a realistic persona (Name, Edu, Exp) that perfectly fits the job.
-    
-    STRICT JSON OUTPUT ONLY. No Markdown. No code blocks.
-    Structure matches these specific fields:
-    {
-      "name": "Full Name",
-      "location": "City, Country",
-      "phone": "+1 555...",
-      "email": "email@example.com",
-      "linkedin": "linkedin.com/in/...",
-      "summary": "Professional summary optimized for the job.",
-      "skills": [
-        { "category": "Core Skills", "items": "Java, Python, SQL" },
-        { "category": "Tools", "items": "Git, Docker, JIRA" }
-      ],
-      "education": [
-        { "school": "University Name", "degree": "Degree Name", "location": "City, State", "start": "2018", "end": "2022", "notes": "Relevant coursework..." }
-      ],
-      "experience": [
-        { "org": "Company A", "role": "Job Title", "location": "City", "start": "2023", "end": "Present", "bullets": ["Action verb result 1", "Action verb result 2"] },
-        { "org": "Company B", "role": "Previous Title", "location": "City", "start": "2020", "end": "2023", "bullets": ["Action verb result 1", "Action verb result 2"] }
-      ],
-      "projects": [
-         { "name": "Project Name", "context": "Personal/Freelance", "bullets": ["Description of what was built"] }
-      ],
-      "certifications": ["Cert Name (Year)"],
-      "languages": ["Language 1", "Language 2"]
-    }
-
-    JOB DESCRIPTION:
-    ${jobDesc}
-  `;
-
-  try {
-    const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`,
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
-      }
-    );
-
-    if (!response.ok) throw new Error("API Failed");
-
-    const data = await response.json();
-    let text = data.candidates[0].content.parts[0].text;
-    text = text.replace(/```json|```/g, "").trim(); // Clean markdown
-    const json = JSON.parse(text);
-
-    // CLEAR CURRENT
-    clearAll();
-
-    // POPULATE FIELDS
-    document.getElementById('name').value = json.name || "";
-    document.getElementById('loc').value = json.location || "";
-    document.getElementById('phone').value = json.phone || "";
-    document.getElementById('email').value = json.email || "";
-    document.getElementById('linkedin').value = json.linkedin || "";
-    document.getElementById('summary').value = json.summary || "";
-
-    // Populate Lists using existing helper functions
-    (json.skills || []).forEach(s => addSkillCategory({ label: s.category, items: s.items }));
-    (json.education || []).forEach(e => addEdu({ school: e.school, degree: e.degree, place: e.location, start: e.start, end: e.end, notes: e.notes }));
-    (json.experience || []).forEach(e => addExp({ org: e.org, role: e.role, place: e.location, start: e.start, end: e.end, bullets: e.bullets }));
-    (json.projects || []).forEach(p => addProj({ name: p.name, context: p.context, bullets: p.bullets }));
-    (json.certifications || []).forEach(c => addCert({ text: c }));
-    (json.languages || []).forEach(l => addLanguage({ text: l }));
-
-    // Trigger updates
-    updateHeader();
-    updateSummary();
-    
-    // Switch to Header Tab to show result
-    go(1);
-    alert("Resume Generated! Please review the tabs.");
-
-  } finally {
-    btn.textContent = "⚡ Generate Resume";
-    btn.disabled = false;
-  }
-}
-
-/* ================= THEME & UI LOGIC (Original) ================= */
+/* ================= THEME & UI LOGIC ================= */
 (function initTheme(){
   const saved = localStorage.getItem('resume_theme');
   if(saved){ document.documentElement.setAttribute('data-theme', saved); }
@@ -485,7 +367,7 @@ addEventListener('keydown', (e)=>{
   if(e.key==='ArrowRight') go(step+1); 
   if(e.key==='ArrowLeft') go(step-1); 
 });
-go(0); // Start at AI Tab
+go(0);
 
 const $ = (id)=>document.getElementById(id);
 const esc = (s)=> (s||"").toString();
@@ -765,10 +647,11 @@ function fillSample(){
   addEdu({ school:"University of Example", degree:"B.S. Science", start:"2015", end:"2019" });
   addExp({ org:"Example Corp", role:"Manager", start:"2020", end:"Present", bullets:["Led a team of 5", "Increased revenue by 20%"] });
   
-  updateHeader(); updateSummary(); go(1);
+  updateHeader(); updateSummary(); go(0);
 }
 
 function clearAll(){
+  localStorage.removeItem(SAVE_KEY);
   document.querySelectorAll('input,textarea').forEach(el=> el.value="");
   ['skillsList','eduList','expList','projList','certList','awardList','actList','langList','customList'].forEach(id=> $(id).innerHTML="");
   ['pvSkills','pvEducation','pvExperience','pvProjects','pvCerts','pvAwards','pvActs','pvLangs','pvInterests','pvSummaryWrap'].forEach(id=> $(id).style.display="none");
@@ -777,9 +660,87 @@ function clearAll(){
   ['pvEduList','pvExpList','pvProjList','pvSkillsList','pvCertList','pvAwardList','pvActList','pvLangs','pvInterestsText','pvCustomSections'].forEach(id=> $(id).innerHTML="");
 }
 
+/* ================= AUTO-SAVE ================= */
+const SAVE_KEY = 'resume_data';
+
+function collectData(){
+  const data = {
+    name: $('name').value, loc: $('loc').value, phone: $('phone').value,
+    email: $('email').value, portfolio: $('portfolio').value,
+    linkedin: $('linkedin').value, otherlink: $('otherlink').value,
+    summary: $('summary').value, interests: $('interests').value,
+    skills: [], education: [], experience: [], projects: [],
+    certs: [], awards: [], activities: [], languages: [], custom: []
+  };
+  $('skillsList').querySelectorAll('.section-card').forEach(c=>{
+    data.skills.push({ label: c.querySelector('.sk-label').value, items: c.querySelector('.sk-items').value });
+  });
+  $('eduList').querySelectorAll('.section-card').forEach(c=>{
+    data.education.push({ school: c.querySelector('.ed-school').value, degree: c.querySelector('.ed-degree').value,
+      place: c.querySelector('.ed-place').value, start: c.querySelector('.ed-start').value,
+      end: c.querySelector('.ed-end').value, notes: c.querySelector('.ed-notes').value });
+  });
+  $('expList').querySelectorAll('.section-card').forEach(c=>{
+    data.experience.push({ org: c.querySelector('.ex-org').value, role: c.querySelector('.ex-role').value,
+      place: c.querySelector('.ex-place').value, start: c.querySelector('.ex-start').value,
+      end: c.querySelector('.ex-end').value, bullets: c.querySelector('.ex-bullets').value.split('\n') });
+  });
+  $('projList').querySelectorAll('.section-card').forEach(c=>{
+    data.projects.push({ name: c.querySelector('.pr-name').value, context: c.querySelector('.pr-context').value,
+      bullets: c.querySelector('.pr-bullets').value.split('\n') });
+  });
+  $('certList').querySelectorAll('.section-card').forEach(c=>{ data.certs.push(c.querySelector('.simple-item').value); });
+  $('awardList').querySelectorAll('.section-card').forEach(c=>{ data.awards.push(c.querySelector('.simple-item').value); });
+  $('actList').querySelectorAll('.section-card').forEach(c=>{ data.activities.push(c.querySelector('.simple-item').value); });
+  $('langList').querySelectorAll('.section-card').forEach(c=>{ data.languages.push(c.querySelector('.simple-item').value); });
+  $('customList').querySelectorAll('.section-card').forEach(c=>{
+    data.custom.push({ title: c.querySelector('.cs-title').value, lines: c.querySelector('.cs-lines').value.split('\n') });
+  });
+  return data;
+}
+
+function autoSave(){
+  localStorage.setItem(SAVE_KEY, JSON.stringify(collectData()));
+}
+
+function loadSaved(){
+  const raw = localStorage.getItem(SAVE_KEY);
+  if(!raw) return;
+  try {
+    const d = JSON.parse(raw);
+    $('name').value = d.name||''; $('loc').value = d.loc||''; $('phone').value = d.phone||'';
+    $('email').value = d.email||''; $('portfolio').value = d.portfolio||'';
+    $('linkedin').value = d.linkedin||''; $('otherlink').value = d.otherlink||'';
+    $('summary').value = d.summary||''; $('interests').value = d.interests||'';
+
+    (d.skills||[]).forEach(s=> addSkillCategory(s));
+    (d.education||[]).forEach(e=> addEdu(e));
+    (d.experience||[]).forEach(e=> addExp(e));
+    (d.projects||[]).forEach(p=> addProj(p));
+    (d.certs||[]).forEach(t=> addCert({text:t}));
+    (d.awards||[]).forEach(t=> addAward({text:t}));
+    (d.activities||[]).forEach(t=> addActivity({text:t}));
+    (d.languages||[]).forEach(t=> addLanguage({text:t}));
+    (d.custom||[]).forEach(c=> addCustomSection(c));
+  } catch(e){ /* ignore corrupt data */ }
+}
+
+// Listen for any input change in the form panel
+document.querySelector('.panel').addEventListener('input', autoSave);
+
+// Also save when cards are removed (DOM changes)
+new MutationObserver(()=>{ autoSave(); }).observe(
+  document.querySelector('.slides'), { childList:true, subtree:true }
+);
+
 /* Init */
-updateHeader(); 
+loadSaved();
+updateHeader();
 updateSummary();
+// re-trigger interests preview
+const intVal = ($('interests').value||'').trim();
+$('pvInterests').style.display = intVal ? '' : 'none';
+$('pvInterestsText').textContent = intVal;
 </script>
 </body>
 </html>
