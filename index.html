@@ -137,6 +137,19 @@
   .bullets{ margin:2px 0 6px 0; padding-left:16px; } .bullets li{ margin:2px 0 }
   .tight{ margin:0; padding-left:16px; } .tight li{ margin:2px 0 }
 
+  /* ================= Shared (read-only) mode ================= */
+  body.shared .panel{ display:none }
+  body.shared .wrap{ grid-template-columns:1fr }
+  body.shared .preview{ min-height:100dvh }
+
+  .toast{
+    position:fixed; bottom:24px; left:50%; transform:translateX(-50%);
+    background:#16a34a; color:#fff; padding:10px 20px; border-radius:12px;
+    font-weight:600; font-size:13px; z-index:999;
+    animation: fadeout .4s 2.2s forwards;
+  }
+  @keyframes fadeout{ to{ opacity:0; transform:translateX(-50%) translateY(8px); } }
+
   /* ================= Print ================= */
   @page{ size: Letter; margin:.6in; }
   @media print{
@@ -160,6 +173,7 @@
           </button>
           <button class="btn" onclick="fillSample()">Sample</button>
           <button class="btn" onclick="clearAll()">Clear</button>
+          <button class="btn" onclick="shareResume()">Share</button>
           <button class="btn primary" onclick="window.print()">Save PDF</button>
         </div>
       </div>
@@ -733,14 +747,116 @@ new MutationObserver(()=>{ autoSave(); }).observe(
   document.querySelector('.slides'), { childList:true, subtree:true }
 );
 
+/* ================= SHARE FEATURE ================= */
+async function compressData(json){
+  const bytes = new TextEncoder().encode(JSON.stringify(json));
+  const cs = new CompressionStream('deflate');
+  const writer = cs.writable.getWriter();
+  writer.write(bytes); writer.close();
+  const chunks = []; const reader = cs.readable.getReader();
+  while(true){ const {done, value} = await reader.read(); if(done) break; chunks.push(value); }
+  const buf = new Uint8Array(chunks.reduce((a,c)=>a+c.length,0));
+  let off=0; chunks.forEach(c=>{ buf.set(c,off); off+=c.length; });
+  return btoa(String.fromCharCode(...buf)).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
+}
+
+async function decompressData(str){
+  str = str.replace(/-/g,'+').replace(/_/g,'/');
+  while(str.length%4) str+='=';
+  const bin = atob(str);
+  const bytes = Uint8Array.from(bin, c=>c.charCodeAt(0));
+  const ds = new DecompressionStream('deflate');
+  const writer = ds.writable.getWriter();
+  writer.write(bytes); writer.close();
+  const chunks = []; const reader = ds.readable.getReader();
+  while(true){ const {done, value} = await reader.read(); if(done) break; chunks.push(value); }
+  const buf = new Uint8Array(chunks.reduce((a,c)=>a+c.length,0));
+  let off=0; chunks.forEach(c=>{ buf.set(c,off); off+=c.length; });
+  return JSON.parse(new TextDecoder().decode(buf));
+}
+
+function showToast(msg){
+  const t = document.createElement('div'); t.className='toast'; t.textContent=msg;
+  document.body.appendChild(t);
+  setTimeout(()=>t.remove(), 2800);
+}
+
+// Minify keys to shrink URL
+function minify(d){
+  return {n:d.name,l:d.loc,p:d.phone,e:d.email,w:d.portfolio,li:d.linkedin,o:d.otherlink,
+    s:d.summary,i:d.interests,
+    sk:(d.skills||[]).map(x=>([x.label,x.items])),
+    ed:(d.education||[]).map(x=>([x.school,x.degree,x.place,x.start,x.end,x.notes])),
+    ex:(d.experience||[]).map(x=>([x.org,x.role,x.place,x.start,x.end,x.bullets])),
+    pr:(d.projects||[]).map(x=>([x.name,x.context,x.bullets])),
+    c:d.certs,aw:d.awards,ac:d.activities,la:d.languages,
+    cu:(d.custom||[]).map(x=>([x.title,x.lines]))};
+}
+function expand(m){
+  return {name:m.n||'',loc:m.l||'',phone:m.p||'',email:m.e||'',portfolio:m.w||'',
+    linkedin:m.li||'',otherlink:m.o||'',summary:m.s||'',interests:m.i||'',
+    skills:(m.sk||[]).map(x=>({label:x[0],items:x[1]})),
+    education:(m.ed||[]).map(x=>({school:x[0],degree:x[1],place:x[2],start:x[3],end:x[4],notes:x[5]})),
+    experience:(m.ex||[]).map(x=>({org:x[0],role:x[1],place:x[2],start:x[3],end:x[4],bullets:x[5]})),
+    projects:(m.pr||[]).map(x=>({name:x[0],context:x[1],bullets:x[2]})),
+    certs:m.c||[],awards:m.aw||[],activities:m.ac||[],languages:m.la||[],
+    custom:(m.cu||[]).map(x=>({title:x[0],lines:x[1]}))};
+}
+
+async function shareResume(){
+  const data = collectData();
+  if(!data.name.trim()){ alert('Please fill in at least your name before sharing.'); return; }
+  const encoded = await compressData(minify(data));
+  const slug = data.name.trim().toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/-+$/,'');
+  const url = location.origin + location.pathname + '#/' + slug + '/' + encoded;
+  await navigator.clipboard.writeText(url);
+  showToast('Share link copied to clipboard!');
+}
+
+async function loadShared(){
+  const hash = location.hash;
+  if(!hash.startsWith('#/')) return false;
+  const parts = hash.slice(2).split('/');
+  if(parts.length < 2) return false;
+  const encoded = parts.slice(1).join('/');
+  try {
+    const raw = await decompressData(encoded);
+    const d = expand(raw);
+    $('name').value = d.name; $('loc').value = d.loc; $('phone').value = d.phone;
+    $('email').value = d.email; $('portfolio').value = d.portfolio;
+    $('linkedin').value = d.linkedin; $('otherlink').value = d.otherlink;
+    $('summary').value = d.summary; $('interests').value = d.interests;
+    d.skills.forEach(s=> addSkillCategory(s));
+    d.education.forEach(e=> addEdu(e));
+    d.experience.forEach(e=> addExp(e));
+    d.projects.forEach(p=> addProj(p));
+    d.certs.forEach(t=> addCert({text:t}));
+    d.awards.forEach(t=> addAward({text:t}));
+    d.activities.forEach(t=> addActivity({text:t}));
+    d.languages.forEach(t=> addLanguage({text:t}));
+    d.custom.forEach(c=> addCustomSection(c));
+    updateHeader(); updateSummary();
+    const iv=(d.interests||'').trim();
+    $('pvInterests').style.display=iv?'':'none';
+    $('pvInterestsText').textContent=iv;
+    document.body.classList.add('shared');
+    document.title = (d.name||'Resume') + ' — Resume';
+    return true;
+  } catch(e){ return false; }
+}
+
 /* Init */
-loadSaved();
-updateHeader();
-updateSummary();
-// re-trigger interests preview
-const intVal = ($('interests').value||'').trim();
-$('pvInterests').style.display = intVal ? '' : 'none';
-$('pvInterestsText').textContent = intVal;
+(async ()=>{
+  const isShared = await loadShared();
+  if(!isShared){
+    loadSaved();
+    updateHeader();
+    updateSummary();
+    const intVal = ($('interests').value||'').trim();
+    $('pvInterests').style.display = intVal ? '' : 'none';
+    $('pvInterestsText').textContent = intVal;
+  }
+})();
 </script>
 </body>
 </html>
