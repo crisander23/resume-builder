@@ -781,26 +781,36 @@ function showToast(msg){
   setTimeout(()=>t.remove(), 2800);
 }
 
-// Minify keys to shrink URL
+// Minify: short keys + strip empties
 function minify(d){
-  return {n:d.name,l:d.loc,p:d.phone,e:d.email,w:d.portfolio,li:d.linkedin,o:d.otherlink,
-    s:d.summary,i:d.interests,
-    sk:(d.skills||[]).map(x=>([x.label,x.items])),
-    ed:(d.education||[]).map(x=>([x.school,x.degree,x.place,x.start,x.end,x.notes])),
-    ex:(d.experience||[]).map(x=>([x.org,x.role,x.place,x.start,x.end,x.bullets])),
-    pr:(d.projects||[]).map(x=>([x.name,x.context,x.bullets])),
-    c:d.certs,aw:d.awards,ac:d.activities,la:d.languages,
-    cu:(d.custom||[]).map(x=>([x.title,x.lines]))};
+  const m={};
+  if(d.name)m.n=d.name; if(d.loc)m.l=d.loc; if(d.phone)m.p=d.phone;
+  if(d.email)m.e=d.email; if(d.portfolio)m.w=d.portfolio;
+  if(d.linkedin)m.li=d.linkedin; if(d.otherlink)m.o=d.otherlink;
+  if(d.summary)m.s=d.summary; if(d.interests)m.i=d.interests;
+  const sk=(d.skills||[]).map(x=>[x.label,x.items]).filter(x=>x[0]||x[1]);
+  const ed=(d.education||[]).map(x=>[x.school,x.degree,x.place,x.start,x.end,x.notes].map(v=>v||''));
+  const ex=(d.experience||[]).map(x=>[x.org,x.role,x.place,x.start,x.end,(x.bullets||[]).filter(b=>b.trim())]);
+  const pr=(d.projects||[]).map(x=>[x.name,x.context,(x.bullets||[]).filter(b=>b.trim())]);
+  const c=(d.certs||[]).filter(Boolean);
+  const aw=(d.awards||[]).filter(Boolean);
+  const ac=(d.activities||[]).filter(Boolean);
+  const la=(d.languages||[]).filter(Boolean);
+  const cu=(d.custom||[]).map(x=>[x.title,(x.lines||[]).filter(b=>b.trim())]).filter(x=>x[0]||x[1].length);
+  if(sk.length)m.sk=sk; if(ed.length)m.ed=ed; if(ex.length)m.ex=ex;
+  if(pr.length)m.pr=pr; if(c.length)m.c=c; if(aw.length)m.aw=aw;
+  if(ac.length)m.ac=ac; if(la.length)m.la=la; if(cu.length)m.cu=cu;
+  return m;
 }
 function expand(m){
   return {name:m.n||'',loc:m.l||'',phone:m.p||'',email:m.e||'',portfolio:m.w||'',
     linkedin:m.li||'',otherlink:m.o||'',summary:m.s||'',interests:m.i||'',
     skills:(m.sk||[]).map(x=>({label:x[0],items:x[1]})),
     education:(m.ed||[]).map(x=>({school:x[0],degree:x[1],place:x[2],start:x[3],end:x[4],notes:x[5]})),
-    experience:(m.ex||[]).map(x=>({org:x[0],role:x[1],place:x[2],start:x[3],end:x[4],bullets:x[5]})),
-    projects:(m.pr||[]).map(x=>({name:x[0],context:x[1],bullets:x[2]})),
+    experience:(m.ex||[]).map(x=>({org:x[0],role:x[1],place:x[2],start:x[3],end:x[4],bullets:x[5]||[]})),
+    projects:(m.pr||[]).map(x=>({name:x[0],context:x[1],bullets:x[2]||[]})),
     certs:m.c||[],awards:m.aw||[],activities:m.ac||[],languages:m.la||[],
-    custom:(m.cu||[]).map(x=>({title:x[0],lines:x[1]}))};
+    custom:(m.cu||[]).map(x=>({title:x[0],lines:x[1]||[]}))};
 }
 
 async function shareResume(){
