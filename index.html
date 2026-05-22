@@ -3,869 +3,1574 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>CLASSIC RESUME BUILDER</title>
+<title>Resume Builder</title>
 <style>
-  /* ================= Theme Tokens ================= */
   :root{
-    --bg:#000;                   /* dark default */
-    --ink:#e6eaf2;
-    --muted:#a9b0bf;
-    --glass:rgba(255,255,255,.08);
-    --border:rgba(255,255,255,.16);
-    --btn-surface:rgba(255,255,255,.06);
-
-    /* unified minimalist blue for BOTH themes */
-    --btn-primary:#2563eb;
-    --btn-primary-ink:#ffffff;
-
-    --radius:16px;
+    --bg:#f7f7f5;
+    --panel:#ffffff;
+    --panel-2:#fbfbfa;
+    --ink:#191919;
+    --muted:#6f6f6f;
+    --soft:#e7e5e1;
+    --line:#d7d4cf;
+    --accent:#111111;
+    --accent-strong:#000000;
+    --accent-soft:#eeeeeb;
+    --warn:#8a5a00;
+    --danger:#b42318;
+    --paper:#ffffff;
+    --shadow:0 18px 44px rgba(15,15,15,.12);
+    --radius:8px;
   }
-  /* Light mode overrides */
-  :root[data-theme="light"]{
-    --bg:#f5f7fb;
-    --ink:#0f172a;
-    --muted:#475569;
-    --glass:#ffffff;
-    --border:#e2e8f0;
-    --btn-surface:#f1f5f9;
+  :root[data-theme="dark"]{
+    --bg:#191919;
+    --panel:#202020;
+    --panel-2:#252525;
+    --ink:#f1f1ef;
+    --muted:#b5b3ad;
+    --soft:#353535;
+    --line:#4a4a4a;
+    --accent:#f1f1ef;
+    --accent-strong:#ffffff;
+    --accent-soft:#30302e;
+    --paper:#ffffff;
+    --shadow:0 18px 44px rgba(0,0,0,.36);
   }
-
-  *{ box-sizing:border-box }
-  html,body{ height:100%; margin:0 }
+  :root[data-theme="dark"] .btn.primary{
+    color:#191919;
+  }
+  :root[data-theme="dark"] .pill.warn{
+    color:#f5d58a;
+    border-color:#7a612a;
+    background:#2d2617;
+  }
+  *{ box-sizing:border-box; }
+  html,body{ height:100%; margin:0; }
   body{
-    min-height:100%;
-    background:var(--bg); color:var(--ink);
-    font:14px/1.45 Inter, system-ui, -apple-system, "Segoe UI", Roboto, Arial;
-    letter-spacing:.01em;
-  }
-
-  /* ================= 50/50 Layout ================= */
-  .wrap{
-    width:100vw; height:100dvh;
-    display:grid; grid-template-columns:50% 50%;
-  }
-  .wrap > *{ min-width:0; min-height:0; }
-
-  @media (max-width: 900px){
-    .wrap{ grid-template-columns:1fr; height:auto; }
-  }
-
-  /* ================= Form Pane ================= */
-  .panel{
-    padding:16px; overflow:auto;
-    background:var(--glass); border-right:1px solid var(--border);
-    backdrop-filter: blur(12px) saturate(120%);
-    -webkit-backdrop-filter: blur(12px) saturate(120%);
-  }
-  .panel-header{
-    display:flex; align-items:center; justify-content:space-between; gap:10px;
-    padding:6px 0 12px; border-bottom:1px solid var(--border);
-  }
-  .title{ font-weight:900; letter-spacing:.02em; font-size:16px; text-transform:uppercase; }
-  .controls{ display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
-  .btn{
-    border:1px solid var(--border);
-    background:var(--btn-surface);
+    background:var(--bg);
     color:var(--ink);
-    padding:8px 12px; border-radius:12px; cursor:pointer;
+    font:14px/1.45 Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+    letter-spacing:0;
   }
-  .btn.primary{ background:var(--btn-primary); color:var(--btn-primary-ink); border-color:var(--btn-primary); font-weight:700; }
-
-  /* Icon-only toggle */
-  .icon-btn{
-    width:38px; height:38px; border-radius:999px;
-    display:inline-flex; align-items:center; justify-content:center;
-    border:1px solid var(--border); background:var(--btn-surface); cursor:pointer;
+  button,input,textarea,select{ font:inherit; letter-spacing:0; }
+  button{ cursor:pointer; }
+  .app{
+    height:100dvh;
+    display:grid;
+    grid-template-columns:260px minmax(360px, 560px) minmax(420px, 1fr);
+    overflow:hidden;
   }
-  .icon{ width:18px; height:18px; display:block; }
-  /* show sun in light, moon in dark */
-  :root[data-theme="light"] .icon--sun{ display:block }
-  :root[data-theme="light"] .icon--moon{ display:none }
-  :root:not([data-theme="light"]) .icon--sun{ display:none }
-  :root:not([data-theme="light"]) .icon--moon{ display:block }
-
-  .tabs{ display:flex; gap:8px; padding:10px 0; overflow:auto; }
-  .tab{
-    white-space:nowrap; padding:8px 12px; border-radius:999px; cursor:pointer;
-    border:1px solid var(--border); background:var(--btn-surface); color:var(--ink); font-weight:600; font-size:12px;
+  .sidebar,.editor,.previewPane{
+    min-width:0;
+    min-height:0;
   }
-  .tab.active{ outline:2px solid var(--border); background:var(--btn-primary); color:#fff; }
-
-  .slides{ position:relative; overflow:hidden; border-radius:12px; border:1px solid var(--border); }
-  .rail{ display:flex; transition:transform .3s ease; will-change:transform; }
-  .section{ flex:0 0 100%; padding:14px; min-height:320px; }
-  .section h3{ margin:0 0 6px; font-size:14px; }
-  .muted{ color:var(--muted); font-size:12px; margin-bottom:8px; }
-
-  .row{ display:grid; grid-template-columns:1fr 1fr; gap:10px; }
-  @media (max-width:560px){ .row{ grid-template-columns:1fr; } }
-
-  label{ display:block; font-size:12px; color:var(--muted); margin:10px 0 6px; }
-  input, textarea{
-    width:100%; color:var(--ink);
-    background: var(--btn-surface);
-    border:1px solid var(--border); outline:none; border-radius:12px;
+  .sidebar{
+    background:var(--panel);
+    border-right:1px solid var(--soft);
+    display:flex;
+    flex-direction:column;
+  }
+  .brand{
+    padding:14px 14px 10px;
+    border-bottom:1px solid var(--soft);
+  }
+  .brand h1{
+    margin:0;
+    font-size:18px;
+    line-height:1.2;
+  }
+  .brand p{
+    margin:3px 0 0;
+    color:var(--muted);
+    font-size:12px;
+  }
+  .mobileSwitch{
+    display:none;
+    gap:4px;
     padding:10px 12px;
+    border-bottom:1px solid var(--soft);
+    background:var(--panel);
   }
-  textarea{ min-height:90px; resize:vertical; }
-  .section-card{ border:1px dashed var(--border); border-radius:12px; padding:10px; margin:10px 0; background: var(--btn-surface); }
-
-  .nav{ display:flex; justify-content:space-between; gap:8px; padding:10px 0 0; margin-top:10px; border-top:1px solid var(--border); }
-
-  /* ================= Preview Pane ================= */
-  .preview{
-    background:var(--bg); display:flex; align-items:flex-start; justify-content:center;
-    overflow:auto; padding:16px;
+  .navList{
+    padding:8px;
+    display:grid;
+    gap:1px;
+    align-content:start;
+    grid-auto-rows:max-content;
+    flex:1 1 auto;
+    min-height:0;
+    overflow:auto;
   }
-  .page{
-    width:min(100%,816px);
-    background:#fff; color:#111; border-radius:12px;
-    padding:.75in .8in;
-    font-family:"Times New Roman", Times, Georgia, serif; font-size:11pt; line-height:1.25;
-    box-shadow: 0 12px 26px rgba(0,0,0,.2);
+  .navBtn{
+    display:grid;
+    grid-template-columns:22px 1fr auto;
+    align-items:center;
+    gap:7px;
+    width:100%;
+    border:0;
+    background:transparent;
+    color:var(--ink);
+    padding:5px 7px;
+    border-radius:6px;
+    text-align:left;
+    min-height:32px;
   }
-  .name{ text-align:center; font-weight:700; font-size:18pt; letter-spacing:.2px; }
-  .contact{ text-align:center; font-size:10.5pt; color:#444; margin-top:4px; }
-  .rule{ border:0; border-top:1px solid #000; margin:8px 0 6px; }
-  .section-pv{ margin-top:8px; }
-  .section-title{
-    font-variant:small-caps; font-weight:700; letter-spacing:.06em;
-    border-bottom:1px solid #000; padding-bottom:2px; margin-bottom:6px; font-size:11.5pt;
+  .navBtn:hover{ background:var(--panel-2); }
+  .navBtn.active{
+    background:var(--accent-soft);
+    color:var(--ink);
+    font-weight:700;
   }
-  .row-grid{ display:grid; grid-template-columns:1fr auto; gap:8px; align-items:baseline; margin-top:2px; }
-  .org{ font-weight:700 } .role{ font-style:italic } .place{ white-space:nowrap }
-  .bullets{ margin:2px 0 6px 0; padding-left:16px; } .bullets li{ margin:2px 0 }
-  .tight{ margin:0; padding-left:16px; } .tight li{ margin:2px 0 }
-
-  /* ================= Shared (read-only) mode ================= */
-  body.shared .panel{ display:none }
-  body.shared .wrap{ grid-template-columns:1fr }
-  body.shared .preview{ min-height:100dvh }
-
+  .navIcon{
+    width:20px;
+    height:20px;
+    display:grid;
+    place-items:center;
+    border:1px solid var(--soft);
+    border-radius:5px;
+    background:transparent;
+    color:var(--muted);
+    font-size:10px;
+  }
+  .count{
+    min-width:18px;
+    height:18px;
+    border-radius:999px;
+    display:grid;
+    place-items:center;
+    background:transparent;
+    border:1px solid var(--soft);
+    color:var(--muted);
+    font-size:10px;
+  }
+  .sideTools{
+    margin-top:auto;
+    padding:8px;
+    border-top:1px solid var(--soft);
+    display:grid;
+    gap:6px;
+  }
+  .sideTools .btn{
+    min-height:34px;
+    justify-content:flex-start;
+  }
+  .editor{
+    background:var(--panel-2);
+    display:flex;
+    flex-direction:column;
+    border-right:1px solid var(--soft);
+    overflow:hidden;
+  }
+  .topbar{
+    min-height:64px;
+    padding:12px 14px;
+    background:var(--panel);
+    border-bottom:1px solid var(--soft);
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:12px;
+  }
+  .topbarTitle{
+    min-width:0;
+  }
+  .topbarTitle strong{
+    display:block;
+    font-size:14px;
+  }
+  .topbarTitle span{
+    display:block;
+    font-size:12px;
+    color:var(--muted);
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+  }
+  .actions,.toolbar{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    flex-wrap:wrap;
+  }
+  .btn{
+    min-height:36px;
+    border:1px solid var(--line);
+    background:var(--panel);
+    color:var(--ink);
+    border-radius:var(--radius);
+    padding:8px 11px;
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    gap:7px;
+  }
+  .btn:hover{ border-color:var(--accent); }
+  .btn.primary{
+    background:var(--accent);
+    border-color:var(--accent);
+    color:var(--panel);
+    font-weight:700;
+  }
+  .btn.danger{ color:var(--danger); }
+  .btn.iconOnly{
+    width:36px;
+    padding:0;
+  }
+  .btn.small{
+    min-height:30px;
+    padding:5px 8px;
+    font-size:12px;
+  }
+  .icon{
+    width:16px;
+    height:16px;
+    display:inline-block;
+    flex:0 0 auto;
+  }
+  .editorScroll{
+    overflow:auto;
+    padding:18px;
+  }
+  .sectionPanel{
+    display:none;
+    max-width:820px;
+    margin:0 auto;
+  }
+  .sectionPanel.active{ display:block; }
+  .sectionHead{
+    display:flex;
+    align-items:flex-start;
+    justify-content:space-between;
+    gap:12px;
+    margin-bottom:14px;
+  }
+  .sectionHead h2{
+    margin:0;
+    font-size:22px;
+    line-height:1.15;
+  }
+  .sectionHead p{
+    margin:5px 0 0;
+    color:var(--muted);
+  }
+  .fieldGrid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:12px;
+  }
+  .field{ min-width:0; }
+  .field.full{ grid-column:1/-1; }
+  label{
+    display:block;
+    color:var(--muted);
+    font-size:12px;
+    font-weight:700;
+    margin:0 0 6px;
+  }
+  input,textarea,select{
+    width:100%;
+    border:1px solid var(--line);
+    background:var(--panel);
+    color:var(--ink);
+    border-radius:var(--radius);
+    padding:10px 11px;
+    outline:none;
+  }
+  textarea{
+    min-height:96px;
+    resize:vertical;
+  }
+  input:focus,textarea:focus,select:focus{
+    border-color:var(--accent);
+    box-shadow:0 0 0 3px rgba(25,25,25,.08);
+  }
+  .entryList{
+    display:grid;
+    gap:10px;
+  }
+  .entryCard{
+    background:var(--panel);
+    border:1px solid var(--soft);
+    border-radius:var(--radius);
+    overflow:hidden;
+  }
+  .entrySummary{
+    width:100%;
+    border:0;
+    background:transparent;
+    color:var(--ink);
+    display:grid;
+    grid-template-columns:1fr auto;
+    gap:10px;
+    align-items:center;
+    padding:12px;
+    text-align:left;
+  }
+  .entryTitle{
+    font-weight:800;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    white-space:nowrap;
+  }
+  .entrySub{
+    color:var(--muted);
+    font-size:12px;
+    margin-top:2px;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    white-space:nowrap;
+  }
+  .entryBody{
+    display:none;
+    padding:0 12px 12px;
+    border-top:1px solid var(--soft);
+  }
+  .entryCard.open .entryBody{ display:block; }
+  .entryControls{
+    display:flex;
+    justify-content:space-between;
+    gap:8px;
+    margin-top:10px;
+    flex-wrap:wrap;
+  }
+  .emptyState{
+    border:1px dashed var(--line);
+    background:var(--panel);
+    border-radius:var(--radius);
+    padding:18px;
+    text-align:center;
+    color:var(--muted);
+  }
+  .sectionOrder{
+    display:grid;
+    gap:8px;
+  }
+  .orderRow{
+    background:var(--panel);
+    border:1px solid var(--soft);
+    border-radius:var(--radius);
+    padding:8px;
+    display:grid;
+    grid-template-columns:1fr auto;
+    align-items:center;
+    gap:8px;
+  }
+  .orderRow strong{ font-size:13px; }
+  .hintPanel{
+    margin-top:16px;
+    background:var(--panel);
+    border:1px solid var(--soft);
+    border-radius:var(--radius);
+    padding:12px;
+  }
+  .hintPanel h3{
+    margin:0 0 8px;
+    font-size:14px;
+  }
+  .hintList{
+    margin:0;
+    padding-left:18px;
+    color:var(--muted);
+  }
+  .hintList li{ margin:5px 0; }
+  .previewPane{
+    display:flex;
+    flex-direction:column;
+    background:#ededeb;
+    overflow:hidden;
+  }
+  :root[data-theme="dark"] .previewPane{ background:#161616; }
+  .previewTop{
+    min-height:64px;
+    padding:12px 14px;
+    background:var(--panel);
+    border-bottom:1px solid var(--soft);
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:12px;
+  }
+  .quality{
+    display:flex;
+    gap:8px;
+    flex-wrap:wrap;
+  }
+  .pill{
+    min-height:28px;
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+    border:1px solid var(--soft);
+    border-radius:999px;
+    background:var(--panel-2);
+    padding:4px 9px;
+    color:var(--muted);
+    font-size:12px;
+  }
+  .pill.warn{
+    color:var(--warn);
+    border-color:#d6b36a;
+    background:#fff8e5;
+  }
+  .previewScroll{
+    overflow:auto;
+    padding:24px;
+    display:flex;
+    justify-content:center;
+    align-items:flex-start;
+  }
+  .paper{
+    width:816px;
+    min-height:1056px;
+    transform-origin:top center;
+    background:var(--paper);
+    color:#111;
+    padding:.72in .78in;
+    box-shadow:var(--shadow);
+    font-family:"Times New Roman", Times, Georgia, serif;
+    font-size:11pt;
+    line-height:1.25;
+  }
+  .pvName{
+    text-align:center;
+    font-size:19pt;
+    font-weight:700;
+    text-transform:uppercase;
+  }
+  .pvContact{
+    text-align:center;
+    color:#444;
+    margin-top:4px;
+    font-size:10.5pt;
+  }
+  .pvRule{
+    border:0;
+    border-top:1px solid #000;
+    margin:8px 0 6px;
+  }
+  .pvSection{ margin-top:8px; break-inside:avoid; }
+  .pvTitle{
+    font-variant:small-caps;
+    font-weight:700;
+    letter-spacing:.06em;
+    border-bottom:1px solid #000;
+    padding-bottom:2px;
+    margin-bottom:6px;
+    font-size:11.5pt;
+  }
+  .pvRow{
+    display:grid;
+    grid-template-columns:1fr auto;
+    gap:8px;
+    align-items:baseline;
+    margin-top:2px;
+  }
+  .pvOrg{ font-weight:700; }
+  .pvRole{ font-style:italic; }
+  .pvPlace{ white-space:nowrap; text-align:right; }
+  .pvBullets{ margin:2px 0 6px 0; padding-left:16px; }
+  .pvBullets li{ margin:2px 0; }
   .toast{
-    position:fixed; bottom:24px; left:50%; transform:translateX(-50%);
-    background:#16a34a; color:#fff; padding:10px 20px; border-radius:12px;
-    font-weight:600; font-size:13px; z-index:999;
-    animation: fadeout .4s 2.2s forwards;
+    position:fixed;
+    left:50%;
+    bottom:22px;
+    transform:translateX(-50%);
+    background:#0f766e;
+    color:#fff;
+    padding:10px 16px;
+    border-radius:var(--radius);
+    box-shadow:var(--shadow);
+    z-index:20;
   }
-  @keyframes fadeout{ to{ opacity:0; transform:translateX(-50%) translateY(8px); } }
-
-  /* ================= Print ================= */
-  @page{ size: Letter; margin:.6in; }
+  .copyBox{
+    margin-top:10px;
+  }
+  .copyBox textarea{
+    min-height:70px;
+    font-size:12px;
+  }
+  body.shared .sidebar,
+  body.shared .editor,
+  body.shared .previewTop .toolbar,
+  body.shared .mobileSwitch{ display:none; }
+  body.shared .app{ grid-template-columns:1fr; }
+  body.shared .previewPane{ min-height:100dvh; }
+  @media (max-width:1180px){
+    .app{ grid-template-columns:220px minmax(340px, 520px) minmax(360px, 1fr); }
+    .previewTop{ align-items:flex-start; flex-direction:column; }
+  }
+  @media (max-width:900px){
+    .app{
+      grid-template-columns:1fr;
+      height:auto;
+      min-height:100dvh;
+      overflow:visible;
+    }
+    .sidebar{
+      position:sticky;
+      top:0;
+      z-index:10;
+      border-right:0;
+      border-bottom:1px solid var(--soft);
+    }
+    .brand{ display:none; }
+    .mobileSwitch{ display:flex; }
+    .navList{
+      display:flex;
+      overflow:auto;
+      padding:8px;
+    }
+    .navBtn{
+      width:auto;
+      grid-template-columns:1fr;
+      white-space:nowrap;
+      padding:8px 11px;
+    }
+    .navIcon,.count,.sideTools{ display:none; }
+    .editor,.previewPane{ border-right:0; }
+    body.mobile-preview .editor{ display:none; }
+    body.mobile-edit .previewPane{ display:none; }
+    .topbar,.previewTop{ min-height:unset; }
+    .fieldGrid{ grid-template-columns:1fr; }
+    .previewScroll{ padding:12px; }
+    .paper{
+      width:100%;
+      min-height:auto;
+      padding:.45in;
+      transform:none !important;
+    }
+  }
   @media print{
-    body{ background:#fff }
-    .wrap{ display:block }
-    .panel{ display:none }
-    .preview{ padding:0 }
-    .page{ width:auto; padding:0; border-radius:0; box-shadow:none; }
+    body{ background:#fff; }
+    .sidebar,.editor,.previewTop{ display:none !important; }
+    .app{ display:block; min-height:auto; }
+    .previewPane,
+    body.mobile-edit .previewPane,
+    body.mobile-preview .previewPane{ display:block !important; background:#fff; }
+    .previewScroll{ display:block; padding:0; overflow:visible; }
+    .paper{
+      width:auto;
+      min-height:auto;
+      padding:0;
+      box-shadow:none;
+      transform:none !important;
+    }
+    @page{ size:Letter; margin:.6in; }
   }
 </style>
 </head>
-<body>
-  <div class="wrap">
-    <div class="panel">
-      <div class="panel-header">
-        <div class="title">RESUME BUILDER</div>
-        <div class="controls">
-          <button id="modeBtn" class="icon-btn" aria-label="Toggle theme">
-            <svg class="icon icon--moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2m0 16v2m10-10h-2M4 12H2m15.54 6.46-1.41-1.41M7.88 7.88 6.46 6.46m10.96 0-1.42 1.42M7.88 16.12 6.46 17.54"></path></svg>
-            <svg class="icon icon--sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
-          </button>
-          <button class="btn" onclick="fillSample()">Sample</button>
-          <button class="btn" onclick="clearAll()">Clear</button>
-          <button class="btn" onclick="shareResume()">Share</button>
-          <button class="btn primary" onclick="window.print()">Save PDF</button>
-        </div>
+<body class="mobile-edit">
+<div class="app">
+  <aside class="sidebar">
+    <div class="brand">
+      <h1>Resume Builder</h1>
+      <p>Focused editor with a live print preview.</p>
+    </div>
+    <div class="mobileSwitch" role="group" aria-label="Mobile view">
+      <button class="btn small primary" id="editModeBtn" type="button">Edit</button>
+      <button class="btn small" id="previewModeBtn" type="button">Preview</button>
+    </div>
+    <nav class="navList" id="sectionNav" aria-label="Resume sections"></nav>
+    <div class="sideTools">
+      <button class="btn" id="themeBtn" type="button" title="Toggle theme">
+        <span class="icon" aria-hidden="true">◐</span><span>Theme</span>
+      </button>
+      <button class="btn danger" id="clearBtn" type="button">
+        <span class="icon" aria-hidden="true">×</span><span>Clear resume</span>
+      </button>
+    </div>
+  </aside>
+
+  <main class="editor">
+    <div class="topbar">
+      <div class="topbarTitle">
+        <strong id="editorTitle">Header</strong>
+        <span id="editorSubtitle">Contact details recruiters need first.</span>
       </div>
-
-      <div class="tabs" id="tabs">
-        <button class="tab active" data-i="0">Header</button>
-        <button class="tab" data-i="1">Summary</button>
-        <button class="tab" data-i="2">Skills</button>
-        <button class="tab" data-i="3">Education</button>
-        <button class="tab" data-i="4">Experience</button>
-        <button class="tab" data-i="5">Projects</button>
-        <button class="tab" data-i="6">Certs</button>
-        <button class="tab" data-i="7">Awards</button>
-        <button class="tab" data-i="8">Activities</button>
-        <button class="tab" data-i="9">Languages</button>
-        <button class="tab" data-i="10">Interests</button>
-        <button class="tab" data-i="11">Custom</button>
-      </div>
-
-      <div class="slides">
-        <div id="rail" class="rail">
-          
-          <section class="section">
-            <h3>Header / Contact</h3>
-            <label>Name</label><input id="name" placeholder="Your Full Name" />
-            <div class="row">
-              <div><label>Location</label><input id="loc" placeholder="City, Country" /></div>
-              <div><label>Phone</label><input id="phone" placeholder="+63 ___ ___ ____" /></div>
-            </div>
-            <div class="row">
-              <div><label>Email</label><input id="email" placeholder="you@email.com" /></div>
-              <div><label>Website / Portfolio</label><input id="portfolio" placeholder="your-site.com" /></div>
-            </div>
-            <div class="row">
-              <div><label>LinkedIn</label><input id="linkedin" placeholder="linkedin.com/in/username" /></div>
-              <div><label>Other Link</label><input id="otherlink" placeholder="e.g., Behance, ResearchGate" /></div>
-            </div>
-          </section>
-
-          <section class="section">
-            <h3>Summary</h3>
-            <label>Summary</label>
-            <textarea id="summary" placeholder="Short professional overview."></textarea>
-          </section>
-
-          <section class="section">
-            <h3>Skills</h3>
-            <div id="skillsList"></div>
-            <div><button class="btn" onclick="addSkillCategory()">+ Add Skill Category</button></div>
-          </section>
-
-          <section class="section">
-            <h3>Education</h3>
-            <div id="eduList"></div>
-            <div><button class="btn" onclick="addEdu()">+ Add Education</button></div>
-          </section>
-
-          <section class="section">
-            <h3>Experience</h3>
-            <div id="expList"></div>
-            <div><button class="btn" onclick="addExp()">+ Add Experience</button></div>
-          </section>
-
-          <section class="section">
-            <h3>Projects / Portfolio</h3>
-            <div id="projList"></div>
-            <div><button class="btn" onclick="addProj()">+ Add Project</button></div>
-          </section>
-
-          <section class="section">
-            <h3>Certifications</h3>
-            <div id="certList"></div>
-            <button class="btn" onclick="addCert()">+ Add Certification</button>
-          </section>
-
-          <section class="section">
-            <h3>Awards</h3>
-            <div id="awardList"></div>
-            <button class="btn" onclick="addAward()">+ Add Award</button>
-          </section>
-
-          <section class="section">
-            <h3>Activities & Leadership</h3>
-            <div id="actList"></div>
-            <button class="btn" onclick="addActivity()">+ Add Activity</button>
-          </section>
-
-          <section class="section">
-            <h3>Languages</h3>
-            <div id="langList"></div>
-            <button class="btn" onclick="addLanguage()">+ Add Language</button>
-          </section>
-
-          <section class="section">
-            <h3>Interests</h3>
-            <textarea id="interests" placeholder="Hobbies, interests, or volunteer focus."></textarea>
-          </section>
-
-          <section class="section">
-            <h3>Custom Sections</h3>
-            <div id="customList"></div>
-            <div style="margin-top:8px;">
-              <button class="btn" onclick="addCustomSection()">+ Add Custom Section</button>
-            </div>
-          </section>
-        </div>
-      </div>
-
-      <div class="nav">
-        <button id="prevBtn" class="btn">◀ Prev</button>
-        <button id="nextBtn" class="btn primary">Next ▶</button>
+      <div class="actions">
+        <button class="btn" id="sampleBtn" type="button">Sample</button>
+        <button class="btn" id="shareBtn" type="button">Share</button>
+        <button class="btn primary" id="printBtn" type="button">Save PDF</button>
       </div>
     </div>
+    <div class="editorScroll">
+      <section class="sectionPanel active" data-panel="header">
+        <div class="sectionHead">
+          <div><h2>Header</h2><p>Keep this short, scannable, and link-rich.</p></div>
+        </div>
+        <div class="fieldGrid">
+          <div class="field full"><label for="name">Name</label><input id="name" autocomplete="name" placeholder="Your Full Name" /></div>
+          <div class="field"><label for="loc">Location</label><input id="loc" autocomplete="address-level2" placeholder="City, Country" /></div>
+          <div class="field"><label for="phone">Phone</label><input id="phone" type="tel" autocomplete="tel" placeholder="+63 ___ ___ ____" /></div>
+          <div class="field"><label for="email">Email</label><input id="email" type="email" autocomplete="email" placeholder="you@email.com" /></div>
+          <div class="field"><label for="portfolio">Website / Portfolio</label><input id="portfolio" type="url" placeholder="https://your-site.com" /></div>
+          <div class="field"><label for="linkedin">LinkedIn</label><input id="linkedin" type="url" placeholder="https://linkedin.com/in/username" /></div>
+          <div class="field full"><label for="otherlink">Other Link</label><input id="otherlink" type="url" placeholder="GitHub, Behance, ResearchGate, or another profile" /></div>
+        </div>
+      </section>
 
-    <div class="preview">
-      <div class="page" id="page">
+      <section class="sectionPanel" data-panel="summary">
+        <div class="sectionHead">
+          <div><h2>Summary</h2><p>Two to four lines works best for most resumes.</p></div>
+        </div>
+        <div class="fieldGrid">
+          <div class="field full"><label for="summary">Professional Summary</label><textarea id="summary" placeholder="Short professional overview with role, strengths, and target impact."></textarea></div>
+        </div>
+      </section>
+
+      <section class="sectionPanel" data-panel="experience">
+        <div class="sectionHead">
+          <div><h2>Experience</h2><p>Lead with outcomes, scope, and measurable impact.</p></div>
+          <button class="btn primary" id="addExperienceBtn" type="button">Add experience</button>
+        </div>
+        <div class="entryList" id="experienceList"></div>
+      </section>
+
+      <section class="sectionPanel" data-panel="education">
+        <div class="sectionHead">
+          <div><h2>Education</h2><p>Include relevant honors, coursework, GPA, or thesis only when useful.</p></div>
+          <button class="btn primary" id="addEducationBtn" type="button">Add education</button>
+        </div>
+        <div class="entryList" id="educationList"></div>
+      </section>
+
+      <section class="sectionPanel" data-panel="skills">
+        <div class="sectionHead">
+          <div><h2>Skills</h2><p>Group skills so the section reads like a targeted toolkit.</p></div>
+          <button class="btn primary" id="addSkillBtn" type="button">Add skill group</button>
+        </div>
+        <div class="entryList" id="skillsList"></div>
+      </section>
+
+      <section class="sectionPanel" data-panel="projects">
+        <div class="sectionHead">
+          <div><h2>Projects</h2><p>Show the problem, tools, and result.</p></div>
+          <button class="btn primary" id="addProjectBtn" type="button">Add project</button>
+        </div>
+        <div class="entryList" id="projectsList"></div>
+      </section>
+
+      <section class="sectionPanel" data-panel="extras">
+        <div class="sectionHead">
+          <div><h2>Extras</h2><p>Certifications, awards, languages, activities, and interests.</p></div>
+        </div>
+        <div class="fieldGrid">
+          <div class="field full"><label for="certs">Certifications</label><textarea id="certs" placeholder="One certification per line"></textarea></div>
+          <div class="field full"><label for="awards">Awards</label><textarea id="awards" placeholder="One award per line"></textarea></div>
+          <div class="field full"><label for="activities">Activities & Leadership</label><textarea id="activities" placeholder="One activity per line"></textarea></div>
+          <div class="field full"><label for="languages">Languages</label><textarea id="languages" placeholder="One language per line"></textarea></div>
+          <div class="field full"><label for="interests">Interests</label><textarea id="interests" placeholder="Short list of interests if they support your story"></textarea></div>
+        </div>
+      </section>
+
+      <section class="sectionPanel" data-panel="custom">
+        <div class="sectionHead">
+          <div><h2>Custom Sections</h2><p>Add publications, speaking, volunteering, patents, or anything role-specific.</p></div>
+          <button class="btn primary" id="addCustomBtn" type="button">Add section</button>
+        </div>
+        <div class="entryList" id="customList"></div>
+      </section>
+
+      <section class="sectionPanel" data-panel="order">
+        <div class="sectionHead">
+          <div><h2>Resume Order</h2><p>Move sections to match the role and your strongest evidence.</p></div>
+        </div>
+        <div class="sectionOrder" id="sectionOrder"></div>
+      </section>
+
+      <section class="sectionPanel" data-panel="quality">
+        <div class="sectionHead">
+          <div><h2>Quality Check</h2><p>Quick signals before you print or share.</p></div>
+        </div>
+        <div class="hintPanel">
+          <h3>Recommendations</h3>
+          <ul class="hintList" id="qualityList"></ul>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <section class="previewPane" aria-label="Resume preview">
+    <div class="previewTop">
+      <div class="quality" id="qualityPills"></div>
+      <div class="toolbar">
+        <button class="btn small" id="fitBtn" type="button">Fit</button>
+        <button class="btn small" id="zoomOutBtn" type="button">-</button>
+        <span class="pill" id="zoomLabel">100%</span>
+        <button class="btn small" id="zoomInBtn" type="button">+</button>
+      </div>
+    </div>
+    <div class="previewScroll" id="previewScroll">
+      <article class="paper" id="paper">
         <header>
-          <div class="name" id="pvName">YOUR NAME</div>
-          <div class="contact" id="pvContact">Location • Phone • email@example.com • website • LinkedIn</div>
+          <div class="pvName" id="pvName">YOUR NAME</div>
+          <div class="pvContact" id="pvContact">Location | Phone | email@example.com | website | LinkedIn</div>
         </header>
-        <hr class="rule" />
-
-        <section class="section-pv" id="pvSummaryWrap" style="display:none;">
-          <div class="section-title">Summary</div>
-          <div id="pvSummary"></div>
-        </section>
-
-        <section class="section-pv" id="pvEducation" style="display:none;">
-          <div class="section-title">Education</div>
-          <div id="pvEduList"></div>
-        </section>
-
-        <section class="section-pv" id="pvExperience" style="display:none;">
-          <div class="section-title">Experience</div>
-          <div id="pvExpList"></div>
-        </section>
-
-        <section class="section-pv" id="pvProjects" style="display:none;">
-          <div class="section-title">Projects</div>
-          <div id="pvProjList"></div>
-        </section>
-
-        <section class="section-pv" id="pvSkills" style="display:none;">
-          <div class="section-title">Skills</div>
-          <div id="pvSkillsList"></div>
-        </section>
-
-        <section class="section-pv" id="pvCerts" style="display:none;">
-          <div class="section-title">Certifications</div>
-          <ul class="tight" id="pvCertList"></ul>
-        </section>
-
-        <section class="section-pv" id="pvAwards" style="display:none;">
-          <div class="section-title">Awards</div>
-          <ul class="tight" id="pvAwardList"></ul>
-        </section>
-
-        <section class="section-pv" id="pvActs" style="display:none;">
-          <div class="section-title">Activities & Leadership</div>
-          <ul class="tight" id="pvActList"></ul>
-        </section>
-
-        <section class="section-pv" id="pvLangs" style="display:none;">
-          <div class="section-title">Languages</div>
-          <ul class="tight" id="pvLangList"></ul>
-        </section>
-
-        <section class="section-pv" id="pvInterests" style="display:none;">
-          <div class="section-title">Interests</div>
-          <div id="pvInterestsText"></div>
-        </section>
-
-        <div id="pvCustomSections"></div>
-      </div>
+        <hr class="pvRule" />
+        <div id="resumeSections"></div>
+      </article>
     </div>
-  </div>
+  </section>
+</div>
 
 <script>
-/* ================= THEME & UI LOGIC ================= */
-(function initTheme(){
-  const saved = localStorage.getItem('resume_theme');
-  if(saved){ document.documentElement.setAttribute('data-theme', saved); }
-  document.getElementById('modeBtn').addEventListener('click', ()=>{
-    const isLight = document.documentElement.getAttribute('data-theme') === 'light';
-    const next = isLight ? 'dark' : 'light';
-    document.documentElement.setAttribute('data-theme', next);
-    localStorage.setItem('resume_theme', next);
+const SAVE_KEY = 'resume_data_v2';
+const THEME_KEY = 'resume_theme';
+const $ = (id) => document.getElementById(id);
+const actionVerbs = ['led','built','created','improved','increased','reduced','launched','designed','developed','managed','delivered','implemented','optimized','analyzed','automated','coordinated'];
+const ONE_PAGE_LIMIT = 1220;
+const DEFAULT_ORDER = ['summary','experience','education','skills','projects','certs','awards','activities','languages','interests','custom'];
+const sections = [
+  { id:'header', label:'Header', icon:'ID', subtitle:'Contact details recruiters need first.' },
+  { id:'summary', label:'Summary', icon:'S', subtitle:'A short professional snapshot.' },
+  { id:'experience', label:'Experience', icon:'EX', subtitle:'Roles, scope, and impact.' },
+  { id:'education', label:'Education', icon:'ED', subtitle:'Schools, degrees, and honors.' },
+  { id:'skills', label:'Skills', icon:'SK', subtitle:'Grouped capabilities.' },
+  { id:'projects', label:'Projects', icon:'PR', subtitle:'Portfolio and practical proof.' },
+  { id:'extras', label:'Extras', icon:'+', subtitle:'Certs, awards, languages, activities.' },
+  { id:'custom', label:'Custom', icon:'C', subtitle:'Role-specific sections.' },
+  { id:'order', label:'Order', icon:'↕', subtitle:'Arrange visible resume sections.' },
+  { id:'quality', label:'Quality', icon:'OK', subtitle:'Readiness checks.' }
+];
+let currentSection = 'header';
+let zoom = 1;
+let state = defaultState();
+
+function defaultState(){
+  return {
+    header:{ name:'', loc:'', phone:'', email:'', portfolio:'', linkedin:'', otherlink:'' },
+    summary:'',
+    experience:[],
+    education:[],
+    skills:[],
+    projects:[],
+    extras:{ certs:'', awards:'', activities:'', languages:'', interests:'' },
+    custom:[],
+    sectionOrder:[...DEFAULT_ORDER]
+  };
+}
+
+function iconSvg(name){
+  const paths = {
+    up:'M12 5l-6 6h4v8h4v-8h4l-6-6z',
+    down:'M12 19l6-6h-4V5h-4v8H6l6 6z',
+    trash:'M6 7h12M9 7V5h6v2m-7 3v9m4-9v9m4-9v9',
+    copy:'M8 8h10v10H8z M6 6h10',
+    more:'M12 8h.01M12 12h.01M12 16h.01'
+  };
+  const path = paths[name] || paths.more;
+  return '<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="'+path+'"/></svg>';
+}
+function text(value){ return (value || '').toString(); }
+function lines(value){ return text(value).split('\n').map((line) => line.replace(/^-+\s*/, '').trim()).filter(Boolean); }
+function make(tag, className, content){
+  const el = document.createElement(tag);
+  if(className) el.className = className;
+  if(content !== undefined) el.textContent = content;
+  return el;
+}
+function uid(prefix){ return prefix + '_' + Math.random().toString(36).slice(2, 9); }
+function showToast(message){
+  const existing = document.querySelector('.toast');
+  if(existing) existing.remove();
+  const toast = make('div', 'toast', message);
+  document.body.appendChild(toast);
+  setTimeout(() => toast.remove(), 2600);
+}
+function save(){ localStorage.setItem(SAVE_KEY, JSON.stringify(state)); }
+function updateAndSave(){ renderAll(); save(); }
+
+function renderNav(){
+  const nav = $('sectionNav');
+  nav.textContent = '';
+  sections.forEach((section) => {
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'navBtn' + (section.id === currentSection ? ' active' : '');
+    btn.setAttribute('aria-current', section.id === currentSection ? 'page' : 'false');
+    const icon = make('span', 'navIcon', section.icon);
+    const label = make('span', '', section.label);
+    const count = make('span', 'count', countForSection(section.id));
+    btn.append(icon, label, count);
+    btn.addEventListener('click', () => setSection(section.id));
+    nav.appendChild(btn);
   });
-})();
-
-const rail = document.getElementById('rail');
-const tabs = Array.from(document.querySelectorAll('.tab'));
-let step = 0;
-function go(i){
-  step = Math.max(0, Math.min(tabs.length-1, i));
-  rail.style.transform = `translateX(-${step*100}%)`;
-  tabs.forEach((t,idx)=> t.classList.toggle('active', idx===step));
 }
-tabs.forEach(t => t.addEventListener('click', ()=> go(parseInt(t.dataset.i,10))));
-document.getElementById('prevBtn').addEventListener('click', ()=> go(step-1));
-document.getElementById('nextBtn').addEventListener('click', ()=> go(step+1));
-addEventListener('keydown', (e)=>{ 
-  // Disable arrow keys if typing in textarea
-  if(e.target.tagName === 'TEXTAREA' || e.target.tagName === 'INPUT') return;
-  if(e.key==='ArrowRight') go(step+1); 
-  if(e.key==='ArrowLeft') go(step-1); 
-});
-go(0);
-
-const $ = (id)=>document.getElementById(id);
-const esc = (s)=> (s||"").toString();
-
-/* ----- Header ----- */
-function updateHeader(){
-  const name = esc($('name').value);
-  const loc = esc($('loc').value);
-  const phone = esc($('phone').value);
-  const email = esc($('email').value);
-  const portfolio = esc($('portfolio').value);
-  const linkedin = esc($('linkedin').value);
-  const other = esc($('otherlink').value);
-  const parts=[];
-  if(loc) parts.push(loc);
-  if(phone) parts.push(phone);
-  if(email) parts.push(email);
-  if(portfolio) parts.push(portfolio);
-  if(linkedin) parts.push(linkedin);
-  if(other) parts.push(other);
-  $('pvName').textContent = name || 'YOUR NAME';
-  $('pvContact').textContent = parts.join(' • ');
+function countForSection(id){
+  if(id === 'experience') return state.experience.length;
+  if(id === 'education') return state.education.length;
+  if(id === 'skills') return state.skills.length;
+  if(id === 'projects') return state.projects.length;
+  if(id === 'custom') return state.custom.length;
+  if(id === 'quality') return getQualityIssues().length;
+  if(id === 'extras') return Object.values(state.extras).filter((value) => text(value).trim()).length;
+  return text(id === 'summary' ? state.summary : state.header.name).trim() ? '1' : '0';
 }
-['name','loc','phone','email','portfolio','linkedin','otherlink'].forEach(id=> $(id).addEventListener('input', updateHeader));
-
-/* ----- Summary ----- */
-function updateSummary(){
-  const s = esc($('summary').value).trim();
-  $('pvSummaryWrap').style.display = s ? '' : 'none';
-  $('pvSummary').textContent = s;
+function setSection(id){
+  currentSection = id;
+  document.querySelectorAll('.sectionPanel').forEach((panel) => panel.classList.toggle('active', panel.dataset.panel === id));
+  const meta = sections.find((section) => section.id === id);
+  $('editorTitle').textContent = meta.label;
+  $('editorSubtitle').textContent = meta.subtitle;
+  renderNav();
 }
-$('summary').addEventListener('input', updateSummary);
 
-/* ----- Skills (categories) ----- */
-function addSkillCategory(pref={}){
-  const wrap = document.createElement('div');
-  wrap.className = 'section-card';
-  wrap.innerHTML = `
-    <label>Category Label</label>
-    <input class="sk-label" value="${pref.label||''}" placeholder="Category name">
-    <label>Items</label>
-    <input class="sk-items" value="${pref.items||''}" placeholder="e.g., Item 1, Item 2">
-    <div style="margin-top:8px;">
-      <button class="btn" onclick="this.closest('.section-card').remove(); renderSkills();">Remove</button>
-    </div>`;
-  $('skillsList').appendChild(wrap);
-  wrap.querySelectorAll('input').forEach(el=>el.addEventListener('input', renderSkills));
+function bindHeader(){
+  ['name','loc','phone','email','portfolio','linkedin','otherlink'].forEach((id) => {
+    $(id).addEventListener('input', (event) => {
+      state.header[id] = event.target.value;
+      updateAndSave();
+    });
+  });
+  $('summary').addEventListener('input', (event) => {
+    state.summary = event.target.value;
+    updateAndSave();
+  });
+  ['certs','awards','activities','languages','interests'].forEach((id) => {
+    $(id).addEventListener('input', (event) => {
+      state.extras[id] = event.target.value;
+      updateAndSave();
+    });
+  });
+}
+function syncInputs(){
+  Object.entries(state.header).forEach(([key, value]) => { if($(key)) $(key).value = value || ''; });
+  $('summary').value = state.summary || '';
+  Object.entries(state.extras).forEach(([key, value]) => { if($(key)) $(key).value = value || ''; });
+}
+
+function createEntryCard(type, item, fields, titleFn, subFn){
+  const card = make('div', 'entryCard' + (item.open ? ' open' : ''));
+  const summary = document.createElement('button');
+  summary.type = 'button';
+  summary.className = 'entrySummary';
+  const titleWrap = make('div');
+  titleWrap.append(make('div', 'entryTitle', titleFn(item) || 'Untitled item'));
+  titleWrap.append(make('div', 'entrySub', subFn(item) || 'Click to edit'));
+  const more = make('span', 'pill', item.open ? 'Hide' : 'Edit');
+  summary.append(titleWrap, more);
+  summary.addEventListener('click', () => {
+    item.open = !item.open;
+    renderEntries();
+    save();
+  });
+  const body = make('div', 'entryBody');
+  const grid = make('div', 'fieldGrid');
+  fields.forEach((field) => {
+    const wrap = make('div', 'field' + (field.full ? ' full' : ''));
+    const inputId = field.key + '_' + item.id;
+    const label = make('label', '', field.label);
+    label.setAttribute('for', inputId);
+    const input = document.createElement(field.multiline ? 'textarea' : 'input');
+    input.id = inputId;
+    input.value = Array.isArray(item[field.key]) ? item[field.key].join('\n') : text(item[field.key]);
+    input.placeholder = field.placeholder || '';
+    if(field.type) input.type = field.type;
+    input.addEventListener('input', (event) => {
+      item[field.key] = field.lines ? lines(event.target.value) : event.target.value;
+      renderPreview();
+      applyZoom();
+      requestAnimationFrame(() => {
+        renderQuality();
+        renderNav();
+      });
+      save();
+    });
+    input.addEventListener('change', () => {
+      renderEntries();
+      renderPreview();
+      renderQuality();
+      save();
+    });
+    wrap.append(label, input);
+    grid.appendChild(wrap);
+  });
+  const controls = make('div', 'entryControls');
+  const left = make('div', 'toolbar');
+  const right = make('div', 'toolbar');
+  const up = make('button', 'btn small');
+  up.type = 'button';
+  up.innerHTML = iconSvg('up') + 'Move up';
+  up.addEventListener('click', () => moveEntry(type, item.id, -1));
+  const down = make('button', 'btn small');
+  down.type = 'button';
+  down.innerHTML = iconSvg('down') + 'Move down';
+  down.addEventListener('click', () => moveEntry(type, item.id, 1));
+  const remove = make('button', 'btn small danger');
+  remove.type = 'button';
+  remove.innerHTML = iconSvg('trash') + 'Remove';
+  remove.addEventListener('click', () => removeEntry(type, item.id));
+  left.append(up, down);
+  right.append(remove);
+  controls.append(left, right);
+  body.append(grid, controls);
+  card.append(summary, body);
+  return card;
+}
+function renderEntries(){
+  renderExperience();
+  renderEducation();
   renderSkills();
+  renderProjects();
+  renderCustom();
+  renderOrder();
+  renderNav();
+}
+function renderList(containerId, items, emptyLabel, createCard){
+  const container = $(containerId);
+  container.textContent = '';
+  if(!items.length){
+    const empty = make('div', 'emptyState', emptyLabel);
+    container.appendChild(empty);
+    return;
+  }
+  items.forEach((item) => container.appendChild(createCard(item)));
+}
+function renderExperience(){
+  renderList('experienceList', state.experience, 'No experience yet. Add your strongest or most recent role first.', (item) => createEntryCard('experience', item, [
+    { key:'org', label:'Organization', placeholder:'Company' },
+    { key:'role', label:'Role', placeholder:'Title' },
+    { key:'place', label:'Location', placeholder:'City' },
+    { key:'start', label:'Start', placeholder:'2023' },
+    { key:'end', label:'End', placeholder:'Present' },
+    { key:'bullets', label:'Bullets', placeholder:'- Led...', multiline:true, full:true, lines:true }
+  ], (x) => x.role || x.org, (x) => [x.org, x.place].filter(Boolean).join(' | ')));
+}
+function renderEducation(){
+  renderList('educationList', state.education, 'No education yet. Add your degree, school, or training.', (item) => createEntryCard('education', item, [
+    { key:'school', label:'School', placeholder:'University' },
+    { key:'degree', label:'Degree', placeholder:'Degree' },
+    { key:'place', label:'Location', placeholder:'City, Country' },
+    { key:'start', label:'Start', placeholder:'2019' },
+    { key:'end', label:'End', placeholder:'2023' },
+    { key:'notes', label:'Notes', placeholder:'Honors, GPA, coursework', multiline:true, full:true }
+  ], (x) => x.school || x.degree, (x) => [x.degree, x.place].filter(Boolean).join(' | ')));
 }
 function renderSkills(){
-  const pv=$('pvSkillsList'); pv.innerHTML='';
-  const cards=Array.from($('skillsList').children);
-  const wrap=document.getElementById('pvSkills');
-  if(cards.length===0){ wrap.style.display='none'; return; }
-  wrap.style.display='';
-  cards.forEach(c=>{
-    const label = (c.querySelector('.sk-label').value || 'Skills');
-    const items = c.querySelector('.sk-items').value || '';
-    const div = document.createElement('div'); div.innerHTML = `<strong>${label}:</strong> ${items}`;
-    pv.appendChild(div);
-  });
+  renderList('skillsList', state.skills, 'No skill groups yet. Add grouped skills targeted to the job.', (item) => createEntryCard('skills', item, [
+    { key:'label', label:'Category Label', placeholder:'Technical' },
+    { key:'items', label:'Items', placeholder:'React, TypeScript, SQL', full:true }
+  ], (x) => x.label || 'Skill group', (x) => x.items));
+}
+function renderProjects(){
+  renderList('projectsList', state.projects, 'No projects yet. Add proof of work that supports your target role.', (item) => createEntryCard('projects', item, [
+    { key:'name', label:'Project Name', placeholder:'Resume Builder' },
+    { key:'context', label:'Context', placeholder:'Personal, client, school' },
+    { key:'bullets', label:'Bullets', placeholder:'- Built...', multiline:true, full:true, lines:true }
+  ], (x) => x.name, (x) => x.context));
+}
+function renderCustom(){
+  renderList('customList', state.custom, 'No custom sections yet. Add publications, volunteering, patents, or speaking.', (item) => createEntryCard('custom', item, [
+    { key:'title', label:'Section Title', placeholder:'Publications' },
+    { key:'lines', label:'Content', placeholder:'- Item...', multiline:true, full:true, lines:true }
+  ], (x) => x.title || 'Custom section', (x) => lines((x.lines || []).join('\n')).slice(0, 2).join(' | ')));
+}
+function moveEntry(type, id, direction){
+  const list = state[type];
+  const index = list.findIndex((item) => item.id === id);
+  const next = index + direction;
+  if(index < 0 || next < 0 || next >= list.length) return;
+  [list[index], list[next]] = [list[next], list[index]];
+  updateAndSave();
+}
+function removeEntry(type, id){
+  state[type] = state[type].filter((item) => item.id !== id);
+  updateAndSave();
 }
 
-/* ----- Education ----- */
-function addEdu(pref={}){
-  const card=document.createElement('div'); card.className='section-card';
-  card.innerHTML=`
-    <div class="row">
-      <div><label>School</label><input class="ed-school" value="${pref.school||''}" placeholder="University"></div>
-      <div><label>Degree</label><input class="ed-degree" value="${pref.degree||''}" placeholder="Degree"></div>
-    </div>
-    <div class="row">
-      <div><label>Location</label><input class="ed-place" value="${pref.place||''}" placeholder="City, Country"></div>
-      <div class="row">
-        <div><label>Start</label><input class="ed-start" value="${pref.start||''}" placeholder="Year"></div>
-        <div><label>End</label><input class="ed-end" value="${pref.end||''}" placeholder="Year"></div>
-      </div>
-    </div>
-    <label>Notes</label>
-    <textarea class="ed-notes" placeholder="GPA, honors">${pref.notes||''}</textarea>
-    <div style="margin-top:8px;"><button class="btn" onclick="this.closest('.section-card').remove(); renderEdu();">Remove</button></div>`;
-  $('eduList').appendChild(card);
-  card.querySelectorAll('input,textarea').forEach(el=>el.addEventListener('input', renderEdu));
-  renderEdu();
+function addExperience(pref={}){
+  state.experience.push({ id:uid('exp'), open:true, org:'', role:'', place:'', start:'', end:'', bullets:[], ...pref });
+  updateAndSave();
+  setSection('experience');
 }
-function renderEdu(){
-  const pv=$('pvEduList'); pv.innerHTML='';
-  const cards=Array.from($('eduList').children);
-  const wrap=document.getElementById('pvEducation');
-  if(cards.length===0){ wrap.style.display='none'; return; }
-  wrap.style.display='';
-  cards.forEach(c=>{
-    const school=c.querySelector('.ed-school').value;
-    const degree=c.querySelector('.ed-degree').value;
-    const place=c.querySelector('.ed-place').value;
-    const start=c.querySelector('.ed-start').value;
-    const end=c.querySelector('.ed-end').value;
-    const notes=c.querySelector('.ed-notes').value;
-    const row=document.createElement('div'); row.className='row-grid';
-    row.innerHTML=`<div><div class="org">${school}</div><div class="role">${degree}</div></div>
-                   <div class="place">${place?place+' | ':''}${(start||end)?(start+'–'+end):''}</div>`;
-    pv.appendChild(row);
-    if(notes){ const p=document.createElement('div'); p.textContent=notes; pv.appendChild(p); }
-  });
+function addEducation(pref={}){
+  state.education.push({ id:uid('edu'), open:true, school:'', degree:'', place:'', start:'', end:'', notes:'', ...pref });
+  updateAndSave();
+  setSection('education');
+}
+function addSkill(pref={}){
+  state.skills.push({ id:uid('skill'), open:true, label:'', items:'', ...pref });
+  updateAndSave();
+  setSection('skills');
+}
+function addProject(pref={}){
+  state.projects.push({ id:uid('project'), open:true, name:'', context:'', bullets:[], ...pref });
+  updateAndSave();
+  setSection('projects');
+}
+function addCustom(pref={}){
+  state.custom.push({ id:uid('custom'), open:true, title:'', lines:[], ...pref });
+  updateAndSave();
+  setSection('custom');
 }
 
-/* ----- Experience ----- */
-function addExp(pref={}){
-  const card=document.createElement('div'); card.className='section-card';
-  card.innerHTML=`
-    <div class="row">
-      <div><label>Organization</label><input class="ex-org" value="${pref.org||''}" placeholder="Company"></div>
-      <div><label>Role</label><input class="ex-role" value="${pref.role||''}" placeholder="Title"></div>
-    </div>
-    <div class="row">
-      <div><label>Location</label><input class="ex-place" value="${pref.place||''}" placeholder="City"></div>
-      <div class="row">
-        <div><label>Start</label><input class="ex-start" value="${pref.start||''}" placeholder="Year"></div>
-        <div><label>End</label><input class="ex-end" value="${pref.end||''}" placeholder="Present"></div>
-      </div>
-    </div>
-    <label>Bullets</label>
-    <textarea class="ex-bullets" placeholder="- Achieved X...">${(pref.bullets||[]).join('\n')}</textarea>
-    <div style="margin-top:8px;"><button class="btn" onclick="this.closest('.section-card').remove(); renderExp();">Remove</button></div>`;
-  $('expList').appendChild(card);
-  card.querySelectorAll('input,textarea').forEach(el=>el.addEventListener('input', renderExp));
-  renderExp();
-}
-function renderExp(){
-  const pv=$('pvExpList'); pv.innerHTML='';
-  const cards=Array.from($('expList').children);
-  const wrap=document.getElementById('pvExperience');
-  if(cards.length===0){ wrap.style.display='none'; return; }
-  wrap.style.display='';
-  cards.forEach(c=>{
-    const org=c.querySelector('.ex-org').value;
-    const role=c.querySelector('.ex-role').value;
-    const place=c.querySelector('.ex-place').value;
-    const start=c.querySelector('.ex-start').value;
-    const end=c.querySelector('.ex-end').value;
-    const bullets=c.querySelector('.ex-bullets').value.split('\n').map(s=>s.trim()).filter(Boolean);
-    const block=document.createElement('div');
-    const row=document.createElement('div'); row.className='row-grid';
-    row.innerHTML=`<div><div class="org">${org}</div><div class="role">${role}</div></div>
-                   <div class="place">${place?place+' | ':''}${(start||end)?(start+'–'+end):''}</div>`;
-    block.appendChild(row);
-    if(bullets.length){
-      const ul=document.createElement('ul'); ul.className='bullets';
-      bullets.forEach(b=>{ const li=document.createElement('li'); li.textContent=b.replace(/^-+\s*/,''); ul.appendChild(li); });
-      block.appendChild(ul);
-    }
-    pv.appendChild(block);
-  });
-}
-
-/* ----- Projects ----- */
-function addProj(pref={}){
-  const card=document.createElement('div'); card.className='section-card';
-  card.innerHTML=`
-    <div class="row">
-      <div><label>Project Name</label><input class="pr-name" value="${pref.name||''}" placeholder="Title"></div>
-      <div><label>Context</label><input class="pr-context" value="${pref.context||''}" placeholder="e.g., Personal"></div>
-    </div>
-    <label>Bullets</label>
-    <textarea class="pr-bullets" placeholder="- Description">${(pref.bullets||[]).join('\n')}</textarea>
-    <div style="margin-top:8px;"><button class="btn" onclick="this.closest('.section-card').remove(); renderProj();">Remove</button></div>`;
-  $('projList').appendChild(card);
-  card.querySelectorAll('input,textarea').forEach(el=>el.addEventListener('input', renderProj));
-  renderProj();
-}
-function renderProj(){
-  const pv=$('pvProjList'); pv.innerHTML='';
-  const cards=Array.from($('projList').children);
-  const wrap=document.getElementById('pvProjects');
-  if(cards.length===0){ wrap.style.display='none'; return; }
-  wrap.style.display='';
-  cards.forEach(c=>{
-    const name=c.querySelector('.pr-name').value;
-    const ctx=c.querySelector('.pr-context').value;
-    const bullets=c.querySelector('.pr-bullets').value.split('\n').map(s=>s.trim()).filter(Boolean);
-    const block=document.createElement('div');
-    const row=document.createElement('div'); row.className='row-grid';
-    row.innerHTML=`<div><div class="org">${name}</div><div class="role">${ctx}</div></div><div class="place"></div>`;
-    block.appendChild(row);
-    if(bullets.length){
-      const ul=document.createElement('ul'); ul.className='bullets';
-      bullets.forEach(b=>{ const li=document.createElement('li'); li.textContent=b.replace(/^-+\s*/,''); ul.appendChild(li); });
-      block.appendChild(ul);
-    }
-    pv.appendChild(block);
-  });
-}
-
-/* ----- Simple lists ----- */
-function addCert(pref={}){ addSimple('certList','pvCerts','pvCertList',pref.text||''); }
-function addAward(pref={}){ addSimple('awardList','pvAwards','pvAwardList',pref.text||''); }
-function addActivity(pref={}){ addSimple('actList','pvActs','pvActList',pref.text||''); }
-function addLanguage(pref={}){ addSimple('langList','pvLangs','pvLangList',pref.text||''); }
-function addSimple(formId,wrapId,listId,val){
-  const card=document.createElement('div'); card.className='section-card';
-  card.innerHTML=`
-    <label>Item</label>
-    <input class="simple-item" value="${val}" placeholder="Description">
-    <div style="margin-top:8px;"><button class="btn" onclick="this.closest('.section-card').remove(); renderSimple('${formId}','${wrapId}','${listId}');">Remove</button></div>`;
-  $(formId).appendChild(card);
-  card.querySelector('.simple-item').addEventListener('input',()=>renderSimple(formId,wrapId,listId));
-  renderSimple(formId,wrapId,listId);
-}
-function renderSimple(formId,wrapId,listId){
-  const items=Array.from($(formId).children);
-  const wrap=$(wrapId), ul=$(listId);
-  ul.innerHTML='';
-  if(items.length===0){ wrap.style.display='none'; return; }
-  wrap.style.display='';
-  items.forEach(c=>{
-    const t=(c.querySelector('.simple-item').value||'').trim();
-    if(t){ const li=document.createElement('li'); li.textContent=t; ul.appendChild(li); }
-  });
-}
-
-/* ----- Interests ----- */
-$('interests').addEventListener('input', ()=>{
-  const t=( $('interests').value || '' ).trim();
-  $('pvInterests').style.display = t ? '' : 'none';
-  $('pvInterestsText').textContent = t;
-});
-
-/* ----- Custom Sections ----- */
-function addCustomSection(pref = {}) {
-  const card = document.createElement('div');
-  card.className = 'section-card';
-  card.innerHTML = `
-    <label>Title</label>
-    <input class="cs-title" value="${pref.title || ''}" placeholder="Section Title">
-    <label>Content</label>
-    <textarea class="cs-lines" placeholder="- Bullets...">${(pref.lines || []).join('\n')}</textarea>
-    <div style="margin-top:8px;">
-      <button class="btn" onclick="this.closest('.section-card').remove(); renderCustomSections();">Remove</button>
-    </div>`;
-  document.getElementById('customList').appendChild(card);
-  card.querySelectorAll('input,textarea').forEach(el => el.addEventListener('input', renderCustomSections));
-  renderCustomSections();
-}
-function renderCustomSections() {
-  const wrap = document.getElementById('pvCustomSections');
-  wrap.innerHTML = '';
-  const cards = Array.from(document.getElementById('customList').children);
-  cards.forEach(c => {
-    const title = (c.querySelector('.cs-title').value || '').trim();
-    const lines = (c.querySelector('.cs-lines').value || '')
-      .split('\n').map(s => s.replace(/^-+\s*/, '').trim()).filter(Boolean);
-    if (!title && !lines.length) return;
-    const sec = document.createElement('section'); sec.className = 'section-pv';
-    if (title) {
-      const h = document.createElement('div'); h.className = 'section-title'; h.textContent = title; sec.appendChild(h);
-    }
-    if (lines.length) {
-      const ul = document.createElement('ul'); ul.className = 'bullets';
-      lines.forEach(t => { const li = document.createElement('li'); li.textContent = t; ul.appendChild(li); });
-      sec.appendChild(ul);
-    }
-    wrap.appendChild(sec);
-  });
-}
-
-/* ================= CLEAR & SAMPLE ================= */
-function fillSample(){
-  clearAll();
-  $('name').value = "LOREM IPSUM";
-  $('loc').value = "City, Country";
-  $('phone').value = "+1 555 0123";
-  $('email').value = "lorem@example.com";
-  
-  $('summary').value = "Experienced professional with a demonstrated history of working in the industry.";
-  
-  addSkillCategory({label:"Core", items:"Leadership, Strategy"});
-  addEdu({ school:"University of Example", degree:"B.S. Science", start:"2015", end:"2019" });
-  addExp({ org:"Example Corp", role:"Manager", start:"2020", end:"Present", bullets:["Led a team of 5", "Increased revenue by 20%"] });
-  
-  updateHeader(); updateSummary(); go(0);
-}
-
-function clearAll(){
-  localStorage.removeItem(SAVE_KEY);
-  document.querySelectorAll('input,textarea').forEach(el=> el.value="");
-  ['skillsList','eduList','expList','projList','certList','awardList','actList','langList','customList'].forEach(id=> $(id).innerHTML="");
-  ['pvSkills','pvEducation','pvExperience','pvProjects','pvCerts','pvAwards','pvActs','pvLangs','pvInterests','pvSummaryWrap'].forEach(id=> $(id).style.display="none");
-  $('pvName').textContent="YOUR NAME";
-  $('pvContact').textContent="Location • Phone • email@example.com • website • LinkedIn";
-  ['pvEduList','pvExpList','pvProjList','pvSkillsList','pvCertList','pvAwardList','pvActList','pvLangs','pvInterestsText','pvCustomSections'].forEach(id=> $(id).innerHTML="");
-}
-
-/* ================= AUTO-SAVE ================= */
-const SAVE_KEY = 'resume_data';
-
-function collectData(){
-  const data = {
-    name: $('name').value, loc: $('loc').value, phone: $('phone').value,
-    email: $('email').value, portfolio: $('portfolio').value,
-    linkedin: $('linkedin').value, otherlink: $('otherlink').value,
-    summary: $('summary').value, interests: $('interests').value,
-    skills: [], education: [], experience: [], projects: [],
-    certs: [], awards: [], activities: [], languages: [], custom: []
+function renderOrder(){
+  const labels = {
+    summary:'Summary', experience:'Experience', education:'Education', skills:'Skills', projects:'Projects',
+    certs:'Certifications', awards:'Awards', activities:'Activities & Leadership', languages:'Languages',
+    interests:'Interests', custom:'Custom Sections'
   };
-  $('skillsList').querySelectorAll('.section-card').forEach(c=>{
-    data.skills.push({ label: c.querySelector('.sk-label').value, items: c.querySelector('.sk-items').value });
+  const container = $('sectionOrder');
+  container.textContent = '';
+  state.sectionOrder.forEach((key, index) => {
+    const row = make('div', 'orderRow');
+    row.appendChild(make('strong', '', labels[key] || key));
+    const controls = make('div', 'toolbar');
+    const up = make('button', 'btn small');
+    up.type = 'button';
+    up.innerHTML = iconSvg('up');
+    up.title = 'Move up';
+    up.disabled = index === 0;
+    up.addEventListener('click', () => moveSection(key, -1));
+    const down = make('button', 'btn small');
+    down.type = 'button';
+    down.innerHTML = iconSvg('down');
+    down.title = 'Move down';
+    down.disabled = index === state.sectionOrder.length - 1;
+    down.addEventListener('click', () => moveSection(key, 1));
+    controls.append(up, down);
+    row.appendChild(controls);
+    container.appendChild(row);
   });
-  $('eduList').querySelectorAll('.section-card').forEach(c=>{
-    data.education.push({ school: c.querySelector('.ed-school').value, degree: c.querySelector('.ed-degree').value,
-      place: c.querySelector('.ed-place').value, start: c.querySelector('.ed-start').value,
-      end: c.querySelector('.ed-end').value, notes: c.querySelector('.ed-notes').value });
-  });
-  $('expList').querySelectorAll('.section-card').forEach(c=>{
-    data.experience.push({ org: c.querySelector('.ex-org').value, role: c.querySelector('.ex-role').value,
-      place: c.querySelector('.ex-place').value, start: c.querySelector('.ex-start').value,
-      end: c.querySelector('.ex-end').value, bullets: c.querySelector('.ex-bullets').value.split('\n') });
-  });
-  $('projList').querySelectorAll('.section-card').forEach(c=>{
-    data.projects.push({ name: c.querySelector('.pr-name').value, context: c.querySelector('.pr-context').value,
-      bullets: c.querySelector('.pr-bullets').value.split('\n') });
-  });
-  $('certList').querySelectorAll('.section-card').forEach(c=>{ data.certs.push(c.querySelector('.simple-item').value); });
-  $('awardList').querySelectorAll('.section-card').forEach(c=>{ data.awards.push(c.querySelector('.simple-item').value); });
-  $('actList').querySelectorAll('.section-card').forEach(c=>{ data.activities.push(c.querySelector('.simple-item').value); });
-  $('langList').querySelectorAll('.section-card').forEach(c=>{ data.languages.push(c.querySelector('.simple-item').value); });
-  $('customList').querySelectorAll('.section-card').forEach(c=>{
-    data.custom.push({ title: c.querySelector('.cs-title').value, lines: c.querySelector('.cs-lines').value.split('\n') });
-  });
-  return data;
+}
+function moveSection(key, direction){
+  const index = state.sectionOrder.indexOf(key);
+  const next = index + direction;
+  if(index < 0 || next < 0 || next >= state.sectionOrder.length) return;
+  [state.sectionOrder[index], state.sectionOrder[next]] = [state.sectionOrder[next], state.sectionOrder[index]];
+  updateAndSave();
 }
 
-function autoSave(){
-  localStorage.setItem(SAVE_KEY, JSON.stringify(collectData()));
+function renderPreview(){
+  const header = state.header;
+  $('pvName').textContent = header.name.trim() || 'YOUR NAME';
+  const contact = [header.loc, header.phone, header.email, header.portfolio, header.linkedin, header.otherlink].map(text).filter(Boolean);
+  $('pvContact').textContent = contact.length ? contact.join(' | ') : 'Location | Phone | email@example.com | website | LinkedIn';
+  const container = $('resumeSections');
+  container.textContent = '';
+  state.sectionOrder.forEach((key) => {
+    if(key === 'summary' && state.summary.trim()) container.appendChild(sectionBlock('Summary', [make('div', '', state.summary.trim())]));
+    if(key === 'experience' && state.experience.length) container.appendChild(experienceBlock());
+    if(key === 'education' && state.education.length) container.appendChild(educationBlock());
+    if(key === 'skills' && state.skills.length) container.appendChild(skillsBlock());
+    if(key === 'projects' && state.projects.length) container.appendChild(projectsBlock());
+    if(key === 'certs') appendSimpleSection(container, 'Certifications', lines(state.extras.certs));
+    if(key === 'awards') appendSimpleSection(container, 'Awards', lines(state.extras.awards));
+    if(key === 'activities') appendSimpleSection(container, 'Activities & Leadership', lines(state.extras.activities));
+    if(key === 'languages') appendSimpleSection(container, 'Languages', lines(state.extras.languages));
+    if(key === 'interests' && state.extras.interests.trim()) container.appendChild(sectionBlock('Interests', [make('div', '', state.extras.interests.trim())]));
+    if(key === 'custom') state.custom.forEach((item) => {
+      const itemLines = Array.isArray(item.lines) ? item.lines.filter(Boolean) : lines(item.lines);
+      if(item.title || itemLines.length) container.appendChild(sectionBlock(item.title || 'Additional', [listBlock(itemLines)]));
+    });
+  });
+}
+function sectionBlock(title, children){
+  const section = make('section', 'pvSection');
+  section.appendChild(make('div', 'pvTitle', title));
+  children.forEach((child) => child && section.appendChild(child));
+  return section;
+}
+function listBlock(items){
+  const ul = make('ul', 'pvBullets');
+  items.forEach((item) => ul.appendChild(make('li', '', item)));
+  return ul;
+}
+function appendSimpleSection(container, title, items){
+  if(items.length) container.appendChild(sectionBlock(title, [listBlock(items)]));
+}
+function rowBlock(leftTop, leftBottom, rightText){
+  const row = make('div', 'pvRow');
+  const left = make('div');
+  left.append(make('div', 'pvOrg', leftTop || ''));
+  if(leftBottom) left.append(make('div', 'pvRole', leftBottom));
+  row.append(left, make('div', 'pvPlace', rightText || ''));
+  return row;
+}
+function datePlace(place, start, end){
+  const date = [start, end].filter(Boolean).join('-');
+  return [place, date].filter(Boolean).join(' | ');
+}
+function experienceBlock(){
+  const wrap = make('div');
+  state.experience.forEach((item) => {
+    const block = make('div');
+    block.appendChild(rowBlock(item.org, item.role, datePlace(item.place, item.start, item.end)));
+    if(item.bullets && item.bullets.length) block.appendChild(listBlock(item.bullets));
+    wrap.appendChild(block);
+  });
+  return sectionBlock('Experience', [wrap]);
+}
+function educationBlock(){
+  const wrap = make('div');
+  state.education.forEach((item) => {
+    const block = make('div');
+    block.appendChild(rowBlock(item.school, item.degree, datePlace(item.place, item.start, item.end)));
+    if(item.notes) block.appendChild(make('div', '', item.notes));
+    wrap.appendChild(block);
+  });
+  return sectionBlock('Education', [wrap]);
+}
+function skillsBlock(){
+  const wrap = make('div');
+  state.skills.forEach((item) => {
+    if(!item.label && !item.items) return;
+    const line = make('div');
+    const strong = make('strong', '', (item.label || 'Skills') + ': ');
+    line.append(strong, document.createTextNode(item.items || ''));
+    wrap.appendChild(line);
+  });
+  return sectionBlock('Skills', [wrap]);
+}
+function projectsBlock(){
+  const wrap = make('div');
+  state.projects.forEach((item) => {
+    const block = make('div');
+    block.appendChild(rowBlock(item.name, item.context, ''));
+    if(item.bullets && item.bullets.length) block.appendChild(listBlock(item.bullets));
+    wrap.appendChild(block);
+  });
+  return sectionBlock('Projects', [wrap]);
 }
 
+function getQualityIssues(){
+  const issues = [];
+  const header = state.header;
+  const bulletCount = state.experience.reduce((sum, item) => sum + (item.bullets || []).length, 0) + state.projects.reduce((sum, item) => sum + (item.bullets || []).length, 0);
+  const allBullets = state.experience.flatMap((item) => item.bullets || []).concat(state.projects.flatMap((item) => item.bullets || []));
+  const weakBullets = allBullets.filter((bullet) => {
+    const first = bullet.trim().split(/\s+/)[0].toLowerCase();
+    return first && !actionVerbs.includes(first);
+  }).length;
+  if(!header.name.trim()) issues.push('Add your name.');
+  if(!header.email.trim() && !header.phone.trim()) issues.push('Add at least email or phone.');
+  if(state.summary.length > 520) issues.push('Summary is long; tighten it to two to four lines.');
+  if(!state.experience.length && !state.projects.length) issues.push('Add experience or projects to show proof of work.');
+  if(bulletCount < 3 && (state.experience.length || state.projects.length)) issues.push('Add more impact bullets; aim for three or more.');
+  if(weakBullets > 0) issues.push('Start bullets with stronger action verbs where possible.');
+  if($('paper').scrollHeight > ONE_PAGE_LIMIT) issues.push('Preview may run beyond one page.');
+  if(!issues.length) issues.push('Looks ready for a PDF pass.');
+  return issues;
+}
+function renderQuality(){
+  const issues = getQualityIssues();
+  const list = $('qualityList');
+  list.textContent = '';
+  issues.forEach((issue) => list.appendChild(make('li', '', issue)));
+  const pills = $('qualityPills');
+  pills.textContent = '';
+  const page = $('paper').scrollHeight > ONE_PAGE_LIMIT ? 'Multi-page likely' : 'One-page fit';
+  pills.appendChild(make('span', 'pill' + (page.startsWith('Multi') ? ' warn' : ''), page));
+  pills.appendChild(make('span', 'pill', state.experience.length + ' roles'));
+  const bulletCount = state.experience.reduce((sum, item) => sum + (item.bullets || []).length, 0) + state.projects.reduce((sum, item) => sum + (item.bullets || []).length, 0);
+  pills.appendChild(make('span', 'pill', bulletCount + ' bullets'));
+}
+function renderAll(){
+  syncInputs();
+  renderEntries();
+  renderPreview();
+  applyZoom();
+  requestAnimationFrame(() => {
+    renderQuality();
+    renderNav();
+  });
+}
+
+function applyZoom(){
+  const paper = $('paper');
+  paper.style.transform = 'scale(' + zoom + ')';
+  paper.style.marginBottom = ((paper.offsetHeight * zoom) - paper.offsetHeight + 24) + 'px';
+  $('zoomLabel').textContent = Math.round(zoom * 100) + '%';
+}
+function fitPreview(){
+  const scroll = $('previewScroll');
+  const available = Math.max(320, scroll.clientWidth - 48);
+  zoom = Math.min(1, Math.max(.55, available / 816));
+  applyZoom();
+}
+function minifyState(data){
+  const keep = (value) => text(value).trim();
+  const entry = (item, keys) => keys.map((key) => item[key] || '');
+  const bulletEntry = (item, keys) => [...entry(item, keys), (item.bullets || []).filter(keep)];
+  const m = {};
+  const h = data.header || {};
+  if(keep(h.name)) m.n = h.name;
+  if(keep(h.loc)) m.l = h.loc;
+  if(keep(h.phone)) m.p = h.phone;
+  if(keep(h.email)) m.e = h.email;
+  if(keep(h.portfolio)) m.w = h.portfolio;
+  if(keep(h.linkedin)) m.li = h.linkedin;
+  if(keep(h.otherlink)) m.o = h.otherlink;
+  if(keep(data.summary)) m.s = data.summary;
+  const ex = (data.experience || []).map((item) => bulletEntry(item, ['org','role','place','start','end'])).filter((item) => item.some((value) => Array.isArray(value) ? value.length : keep(value)));
+  const ed = (data.education || []).map((item) => entry(item, ['school','degree','place','start','end','notes'])).filter((item) => item.some(keep));
+  const sk = (data.skills || []).map((item) => entry(item, ['label','items'])).filter((item) => item.some(keep));
+  const pr = (data.projects || []).map((item) => bulletEntry(item, ['name','context'])).filter((item) => item.some((value) => Array.isArray(value) ? value.length : keep(value)));
+  const cu = (data.custom || []).map((item) => [item.title || '', (item.lines || []).filter(keep)]).filter((item) => keep(item[0]) || item[1].length);
+  if(ex.length) m.x = ex;
+  if(ed.length) m.d = ed;
+  if(sk.length) m.k = sk;
+  if(pr.length) m.r = pr;
+  const extras = data.extras || {};
+  if(keep(extras.certs)) m.c = extras.certs;
+  if(keep(extras.awards)) m.a = extras.awards;
+  if(keep(extras.activities)) m.v = extras.activities;
+  if(keep(extras.languages)) m.g = extras.languages;
+  if(keep(extras.interests)) m.i = extras.interests;
+  if(cu.length) m.u = cu;
+  if(JSON.stringify(data.sectionOrder || DEFAULT_ORDER) !== JSON.stringify(DEFAULT_ORDER)) m.q = data.sectionOrder;
+  return m;
+}
+function expandMinified(m){
+  if(!m || typeof m !== 'object' || (!('n' in m) && !('x' in m) && !('k' in m))) return m;
+  return {
+    header:{ name:m.n || '', loc:m.l || '', phone:m.p || '', email:m.e || '', portfolio:m.w || '', linkedin:m.li || '', otherlink:m.o || '' },
+    summary:m.s || '',
+    experience:(m.x || []).map((item) => ({ org:item[0] || '', role:item[1] || '', place:item[2] || '', start:item[3] || '', end:item[4] || '', bullets:item[5] || [] })),
+    education:(m.d || []).map((item) => ({ school:item[0] || '', degree:item[1] || '', place:item[2] || '', start:item[3] || '', end:item[4] || '', notes:item[5] || '' })),
+    skills:(m.k || []).map((item) => ({ label:item[0] || '', items:item[1] || '' })),
+    projects:(m.r || []).map((item) => ({ name:item[0] || '', context:item[1] || '', bullets:item[2] || [] })),
+    extras:{ certs:m.c || '', awards:m.a || '', activities:m.v || '', languages:m.g || '', interests:m.i || '' },
+    custom:(m.u || []).map((item) => ({ title:item[0] || '', lines:item[1] || [] })),
+    sectionOrder:m.q || DEFAULT_ORDER
+  };
+}
+function encPart(value){
+  return encodeURIComponent(text(value)).replace(/%20/g, '+');
+}
+function decPart(value){
+  return decodeURIComponent(text(value).replace(/\+/g, '%20'));
+}
+function encodeTinyData(data){
+  const parts = [];
+  const add = (key, value) => { if(value) parts.push(key + '=' + value); };
+  const h = data.header || {};
+  add('h', [h.name,h.loc,h.phone,h.email,h.portfolio,h.linkedin,h.otherlink].map(encPart).join(','));
+  add('s', encPart(data.summary));
+  const entry = (items) => items.map(encPart).join(',');
+  const bulletEntry = (items, bullets) => [...items.map(encPart), (bullets || []).map(encPart).join(';')].join(',');
+  add('x', (data.experience || []).map((item) => bulletEntry([item.org,item.role,item.place,item.start,item.end], item.bullets)).join('^'));
+  add('d', (data.education || []).map((item) => entry([item.school,item.degree,item.place,item.start,item.end,item.notes])).join('^'));
+  add('k', (data.skills || []).map((item) => entry([item.label,item.items])).join('^'));
+  add('r', (data.projects || []).map((item) => bulletEntry([item.name,item.context], item.bullets)).join('^'));
+  const extras = data.extras || {};
+  add('c', encPart(extras.certs));
+  add('a', encPart(extras.awards));
+  add('v', encPart(extras.activities));
+  add('g', encPart(extras.languages));
+  add('i', encPart(extras.interests));
+  add('u', (data.custom || []).map((item) => [encPart(item.title), (item.lines || []).map(encPart).join(';')].join(',')).join('^'));
+  if(JSON.stringify(data.sectionOrder || DEFAULT_ORDER) !== JSON.stringify(DEFAULT_ORDER)){
+    add('q', (data.sectionOrder || DEFAULT_ORDER).map(encPart).join(','));
+  }
+  return 't:' + parts.join('&');
+}
+function decodeTinyData(str){
+  const params = {};
+  str.slice(2).split('&').forEach((part) => {
+    const index = part.indexOf('=');
+    if(index >= 0) params[part.slice(0, index)] = part.slice(index + 1);
+  });
+  const fields = (key, count) => {
+    const values = text(params[key]).split(',').map(decPart);
+    while(values.length < count) values.push('');
+    return values;
+  };
+  const entries = (key, count, hasBullets) => text(params[key]).split('^').filter(Boolean).map((row) => {
+    const values = row.split(',').map(decPart);
+    while(values.length < count + (hasBullets ? 1 : 0)) values.push('');
+    return values;
+  });
+  const h = fields('h', 7);
+  return {
+    header:{ name:h[0], loc:h[1], phone:h[2], email:h[3], portfolio:h[4], linkedin:h[5], otherlink:h[6] },
+    summary:decPart(params.s || ''),
+    experience:entries('x', 5, true).map((item) => ({ org:item[0], role:item[1], place:item[2], start:item[3], end:item[4], bullets:text(item[5]).split(';').filter(Boolean) })),
+    education:entries('d', 6, false).map((item) => ({ school:item[0], degree:item[1], place:item[2], start:item[3], end:item[4], notes:item[5] })),
+    skills:entries('k', 2, false).map((item) => ({ label:item[0], items:item[1] })),
+    projects:entries('r', 2, true).map((item) => ({ name:item[0], context:item[1], bullets:text(item[2]).split(';').filter(Boolean) })),
+    extras:{ certs:decPart(params.c || ''), awards:decPart(params.a || ''), activities:decPart(params.v || ''), languages:decPart(params.g || ''), interests:decPart(params.i || '') },
+    custom:entries('u', 1, true).map((item) => ({ title:item[0], lines:text(item[1]).split(';').filter(Boolean) })),
+    sectionOrder:params.q ? text(params.q).split(',').map(decPart) : DEFAULT_ORDER
+  };
+}
+function bytesToBase64(bytes){
+  let binary = '';
+  const size = 0x8000;
+  for(let i = 0; i < bytes.length; i += size){
+    binary += String.fromCharCode(...bytes.subarray(i, i + size));
+  }
+  return btoa(binary).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
+}
+function base64ToBytes(str){
+  str = str.replace(/-/g,'+').replace(/_/g,'/');
+  while(str.length % 4) str += '=';
+  const binary = atob(str);
+  return Uint8Array.from(binary, (char) => char.charCodeAt(0));
+}
+function utf8Bytes(input){
+  const encoded = unescape(encodeURIComponent(input));
+  return Uint8Array.from(encoded, (char) => char.charCodeAt(0));
+}
+function utf8Text(bytes){
+  let binary = '';
+  const size = 0x8000;
+  for(let i = 0; i < bytes.length; i += size){
+    binary += String.fromCharCode(...bytes.subarray(i, i + size));
+  }
+  return decodeURIComponent(escape(binary));
+}
+function lzwCompress(input){
+  const dict = new Map();
+  for(let i = 0; i < 256; i++) dict.set(String.fromCharCode(i), i);
+  let phrase = '';
+  let code = 256;
+  const output = [];
+  for(const char of input){
+    const combo = phrase + char;
+    if(dict.has(combo)){
+      phrase = combo;
+    }else{
+      output.push(dict.get(phrase));
+      dict.set(combo, code++);
+      phrase = char;
+    }
+  }
+  if(phrase) output.push(dict.get(phrase));
+  const bytes = new Uint8Array(output.length * 2);
+  output.forEach((value, index) => {
+    bytes[index * 2] = value >> 8;
+    bytes[index * 2 + 1] = value & 255;
+  });
+  return bytes;
+}
+function lzwDecompress(bytes){
+  const codes = [];
+  for(let i = 0; i < bytes.length; i += 2) codes.push((bytes[i] << 8) | bytes[i + 1]);
+  if(!codes.length) return '';
+  const dict = new Map();
+  for(let i = 0; i < 256; i++) dict.set(i, String.fromCharCode(i));
+  let phrase = dict.get(codes[0]);
+  let output = phrase;
+  let code = 256;
+  for(let i = 1; i < codes.length; i++){
+    const currCode = codes[i];
+    const entry = dict.has(currCode) ? dict.get(currCode) : phrase + phrase.charAt(0);
+    output += entry;
+    dict.set(code++, phrase + entry.charAt(0));
+    phrase = entry;
+  }
+  return output;
+}
+
+async function compressData(data){
+  const json = JSON.stringify(data);
+  if(!('CompressionStream' in window)){
+    return encodePlainData(data);
+  }
+  const bytes = utf8Bytes(json);
+  const cs = new CompressionStream('deflate');
+  const writer = cs.writable.getWriter();
+  await writer.write(bytes);
+  await writer.close();
+  const chunks = [];
+  const reader = cs.readable.getReader();
+  while(true){
+    const result = await reader.read();
+    if(result.done) break;
+    chunks.push(result.value);
+  }
+  const buf = new Uint8Array(chunks.reduce((sum, chunk) => sum + chunk.length, 0));
+  let offset = 0;
+  chunks.forEach((chunk) => { buf.set(chunk, offset); offset += chunk.length; });
+  return 'c:' + bytesToBase64(buf);
+}
+function encodePlainData(data){
+  return 'j:' + bytesToBase64(utf8Bytes(JSON.stringify(data)));
+}
+function encodeCompactData(data){
+  return 'l:' + bytesToBase64(lzwCompress(JSON.stringify(data)));
+}
+async function decompressData(str){
+  if(str.startsWith('t:')) return decodeTinyData(str);
+  const mode = str.startsWith('j:') ? 'json' : str.startsWith('l:') ? 'lzw' : 'compressed';
+  const payload = str.startsWith('j:') || str.startsWith('c:') || str.startsWith('l:') ? str.slice(2) : str;
+  const bytes = base64ToBytes(payload);
+  if(mode === 'lzw'){
+    return JSON.parse(lzwDecompress(bytes));
+  }
+  if(mode === 'json'){
+    return JSON.parse(utf8Text(bytes));
+  }
+  if(!('DecompressionStream' in window)){
+    throw new Error('This browser cannot open compressed resume links.');
+  }
+  const ds = new DecompressionStream('deflate');
+  const writer = ds.writable.getWriter();
+  await writer.write(bytes);
+  await writer.close();
+  const chunks = [];
+  const reader = ds.readable.getReader();
+  while(true){
+    const result = await reader.read();
+    if(result.done) break;
+    chunks.push(result.value);
+  }
+  const buf = new Uint8Array(chunks.reduce((sum, chunk) => sum + chunk.length, 0));
+  let offset = 0;
+  chunks.forEach((chunk) => { buf.set(chunk, offset); offset += chunk.length; });
+  return JSON.parse(utf8Text(buf));
+}
+async function shareResume(){
+  if(!state.header.name.trim()){
+    showToast('Add your name before sharing.');
+    setSection('header');
+    return;
+  }
+  showToast('Preparing share link...');
+  const compactState = minifyState(state);
+  let encoded = encodeTinyData(state);
+  try{
+    const compressed = await Promise.race([
+      compressData(compactState),
+      new Promise((_, reject) => setTimeout(() => reject(new Error('Compression timed out')), 2500))
+    ]);
+    if(compressed.length < encoded.length) encoded = compressed;
+  }catch(error){}
+  const slug = state.header.name.trim().toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'') || 'resume';
+  const url = location.origin + location.pathname + '#/' + slug + '/' + encoded;
+  try{
+    await Promise.race([
+      navigator.clipboard.writeText(url),
+      new Promise((_, reject) => setTimeout(() => reject(new Error('Clipboard timed out')), 800))
+    ]);
+    showToast('Share link copied.');
+  }catch(error){
+    showCopyFallback(url);
+  }
+}
+function showCopyFallback(url){
+  const panel = document.querySelector('[data-panel="quality"] .hintPanel');
+  setSection('quality');
+  let box = panel.querySelector('.copyBox');
+  if(!box){
+    box = make('div', 'copyBox');
+    const label = make('label', '', 'Share link');
+    label.setAttribute('for', 'copyFallback');
+    const area = document.createElement('textarea');
+    area.id = 'copyFallback';
+    area.readOnly = true;
+    box.append(label, area);
+    panel.appendChild(box);
+  }
+  box.querySelector('textarea').value = url;
+  box.querySelector('textarea').select();
+  showToast('Copy the share link from Quality.');
+}
+async function loadShared(){
+  if(!location.hash.startsWith('#/')) return false;
+  const parts = location.hash.slice(2).split('/');
+  if(parts.length < 2) return false;
+  try{
+    const encoded = parts.slice(1).join('/');
+    state = normalizeState(expandMinified(await decompressData(encoded)));
+    document.body.classList.add('shared');
+    document.title = (state.header.name || 'Resume') + ' - Resume';
+    return true;
+  }catch(error){
+    return false;
+  }
+}
+function normalizeEntry(item, prefix){
+  return { id:item.id || uid(prefix), open:false, ...item };
+}
+function normalizeState(data){
+  const base = defaultState();
+  const next = { ...base, ...data };
+  next.header = { name:'', loc:'', phone:'', email:'', portfolio:'', linkedin:'', otherlink:'', ...(data.header || {}) };
+  next.extras = { certs:'', awards:'', activities:'', languages:'', interests:'', ...(data.extras || {}) };
+  next.experience = (data.experience || []).map((item) => normalizeEntry(item, 'exp'));
+  next.education = (data.education || []).map((item) => normalizeEntry(item, 'edu'));
+  next.skills = (data.skills || []).map((item) => normalizeEntry(item, 'skill'));
+  next.projects = (data.projects || []).map((item) => normalizeEntry(item, 'project'));
+  next.custom = (data.custom || []).map((item) => normalizeEntry(item, 'custom'));
+  next.sectionOrder = Array.isArray(data.sectionOrder) ? data.sectionOrder : [...DEFAULT_ORDER];
+  return next;
+}
 function loadSaved(){
   const raw = localStorage.getItem(SAVE_KEY);
   if(!raw) return;
-  try {
-    const d = JSON.parse(raw);
-    $('name').value = d.name||''; $('loc').value = d.loc||''; $('phone').value = d.phone||'';
-    $('email').value = d.email||''; $('portfolio').value = d.portfolio||'';
-    $('linkedin').value = d.linkedin||''; $('otherlink').value = d.otherlink||'';
-    $('summary').value = d.summary||''; $('interests').value = d.interests||'';
-
-    (d.skills||[]).forEach(s=> addSkillCategory(s));
-    (d.education||[]).forEach(e=> addEdu(e));
-    (d.experience||[]).forEach(e=> addExp(e));
-    (d.projects||[]).forEach(p=> addProj(p));
-    (d.certs||[]).forEach(t=> addCert({text:t}));
-    (d.awards||[]).forEach(t=> addAward({text:t}));
-    (d.activities||[]).forEach(t=> addActivity({text:t}));
-    (d.languages||[]).forEach(t=> addLanguage({text:t}));
-    (d.custom||[]).forEach(c=> addCustomSection(c));
-  } catch(e){ /* ignore corrupt data */ }
+  try{ state = normalizeState(JSON.parse(raw)); }catch(error){}
+}
+function fillSample(){
+  state = normalizeState({
+    header:{ name:'Lorem Ipsum', loc:'City, Country', phone:'+1 555 0123', email:'lorem@example.com', portfolio:'https://example.com', linkedin:'https://linkedin.com/in/example', otherlink:'' },
+    summary:'Operations-minded product builder with experience turning ambiguous workflows into clear tools, measurable outcomes, and maintainable systems.',
+    experience:[
+      { org:'Example Corp', role:'Product Operations Manager', place:'Remote', start:'2022', end:'Present', bullets:['Led a team of 5 through a workflow redesign that reduced review time by 28%.','Built reporting dashboards that improved weekly planning accuracy.'], open:false }
+    ],
+    education:[
+      { school:'University of Example', degree:'B.S. Information Systems', place:'City, Country', start:'2017', end:'2021', notes:'Graduated with honors.', open:false }
+    ],
+    skills:[
+      { label:'Tools', items:'SQL, Excel, Figma, Jira, Notion', open:false },
+      { label:'Strengths', items:'Process design, stakeholder management, analytics', open:false }
+    ],
+    projects:[
+      { name:'Resume Builder', context:'Personal', bullets:['Designed a static resume editor with live preview, autosave, and shareable links.'], open:false }
+    ],
+    extras:{ certs:'Project Management Certificate', awards:'Dean\'s List', activities:'Student Technology Club Lead', languages:'English\nFilipino', interests:'' }
+  });
+  updateAndSave();
+  setSection('header');
+}
+function clearResume(){
+  if(!confirm('Clear all resume data on this device?')) return;
+  localStorage.removeItem(SAVE_KEY);
+  state = normalizeState({});
+  updateAndSave();
+  setSection('header');
+  showToast('Resume cleared.');
+}
+function bindButtons(){
+  $('addExperienceBtn').addEventListener('click', () => addExperience());
+  $('addEducationBtn').addEventListener('click', () => addEducation());
+  $('addSkillBtn').addEventListener('click', () => addSkill());
+  $('addProjectBtn').addEventListener('click', () => addProject());
+  $('addCustomBtn').addEventListener('click', () => addCustom());
+  $('sampleBtn').addEventListener('click', fillSample);
+  $('clearBtn').addEventListener('click', clearResume);
+  $('shareBtn').addEventListener('click', shareResume);
+  $('printBtn').addEventListener('click', () => window.print());
+  $('themeBtn').addEventListener('click', () => {
+    const next = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+    document.documentElement.setAttribute('data-theme', next);
+    localStorage.setItem(THEME_KEY, next);
+  });
+  $('fitBtn').addEventListener('click', fitPreview);
+  $('zoomInBtn').addEventListener('click', () => { zoom = Math.min(1.25, zoom + .1); applyZoom(); });
+  $('zoomOutBtn').addEventListener('click', () => { zoom = Math.max(.55, zoom - .1); applyZoom(); });
+  $('editModeBtn').addEventListener('click', () => setMobileMode('edit'));
+  $('previewModeBtn').addEventListener('click', () => setMobileMode('preview'));
+  addEventListener('resize', () => { if(innerWidth <= 900) zoom = 1; applyZoom(); renderQuality(); });
+}
+function setMobileMode(mode){
+  document.body.classList.toggle('mobile-edit', mode === 'edit');
+  document.body.classList.toggle('mobile-preview', mode === 'preview');
+  $('editModeBtn').classList.toggle('primary', mode === 'edit');
+  $('previewModeBtn').classList.toggle('primary', mode === 'preview');
 }
 
-// Listen for any input change in the form panel
-document.querySelector('.panel').addEventListener('input', autoSave);
-
-// Also save when cards are removed (DOM changes)
-new MutationObserver(()=>{ autoSave(); }).observe(
-  document.querySelector('.slides'), { childList:true, subtree:true }
-);
-
-/* ================= SHARE FEATURE ================= */
-async function compressData(json){
-  const bytes = new TextEncoder().encode(JSON.stringify(json));
-  const cs = new CompressionStream('deflate');
-  const writer = cs.writable.getWriter();
-  writer.write(bytes); writer.close();
-  const chunks = []; const reader = cs.readable.getReader();
-  while(true){ const {done, value} = await reader.read(); if(done) break; chunks.push(value); }
-  const buf = new Uint8Array(chunks.reduce((a,c)=>a+c.length,0));
-  let off=0; chunks.forEach(c=>{ buf.set(c,off); off+=c.length; });
-  return btoa(String.fromCharCode(...buf)).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
-}
-
-async function decompressData(str){
-  str = str.replace(/-/g,'+').replace(/_/g,'/');
-  while(str.length%4) str+='=';
-  const bin = atob(str);
-  const bytes = Uint8Array.from(bin, c=>c.charCodeAt(0));
-  const ds = new DecompressionStream('deflate');
-  const writer = ds.writable.getWriter();
-  writer.write(bytes); writer.close();
-  const chunks = []; const reader = ds.readable.getReader();
-  while(true){ const {done, value} = await reader.read(); if(done) break; chunks.push(value); }
-  const buf = new Uint8Array(chunks.reduce((a,c)=>a+c.length,0));
-  let off=0; chunks.forEach(c=>{ buf.set(c,off); off+=c.length; });
-  return JSON.parse(new TextDecoder().decode(buf));
-}
-
-function showToast(msg){
-  const t = document.createElement('div'); t.className='toast'; t.textContent=msg;
-  document.body.appendChild(t);
-  setTimeout(()=>t.remove(), 2800);
-}
-
-// Minify: short keys + strip empties
-function minify(d){
-  const m={};
-  if(d.name)m.n=d.name; if(d.loc)m.l=d.loc; if(d.phone)m.p=d.phone;
-  if(d.email)m.e=d.email; if(d.portfolio)m.w=d.portfolio;
-  if(d.linkedin)m.li=d.linkedin; if(d.otherlink)m.o=d.otherlink;
-  if(d.summary)m.s=d.summary; if(d.interests)m.i=d.interests;
-  const sk=(d.skills||[]).map(x=>[x.label,x.items]).filter(x=>x[0]||x[1]);
-  const ed=(d.education||[]).map(x=>[x.school,x.degree,x.place,x.start,x.end,x.notes].map(v=>v||''));
-  const ex=(d.experience||[]).map(x=>[x.org,x.role,x.place,x.start,x.end,(x.bullets||[]).filter(b=>b.trim())]);
-  const pr=(d.projects||[]).map(x=>[x.name,x.context,(x.bullets||[]).filter(b=>b.trim())]);
-  const c=(d.certs||[]).filter(Boolean);
-  const aw=(d.awards||[]).filter(Boolean);
-  const ac=(d.activities||[]).filter(Boolean);
-  const la=(d.languages||[]).filter(Boolean);
-  const cu=(d.custom||[]).map(x=>[x.title,(x.lines||[]).filter(b=>b.trim())]).filter(x=>x[0]||x[1].length);
-  if(sk.length)m.sk=sk; if(ed.length)m.ed=ed; if(ex.length)m.ex=ex;
-  if(pr.length)m.pr=pr; if(c.length)m.c=c; if(aw.length)m.aw=aw;
-  if(ac.length)m.ac=ac; if(la.length)m.la=la; if(cu.length)m.cu=cu;
-  return m;
-}
-function expand(m){
-  return {name:m.n||'',loc:m.l||'',phone:m.p||'',email:m.e||'',portfolio:m.w||'',
-    linkedin:m.li||'',otherlink:m.o||'',summary:m.s||'',interests:m.i||'',
-    skills:(m.sk||[]).map(x=>({label:x[0],items:x[1]})),
-    education:(m.ed||[]).map(x=>({school:x[0],degree:x[1],place:x[2],start:x[3],end:x[4],notes:x[5]})),
-    experience:(m.ex||[]).map(x=>({org:x[0],role:x[1],place:x[2],start:x[3],end:x[4],bullets:x[5]||[]})),
-    projects:(m.pr||[]).map(x=>({name:x[0],context:x[1],bullets:x[2]||[]})),
-    certs:m.c||[],awards:m.aw||[],activities:m.ac||[],languages:m.la||[],
-    custom:(m.cu||[]).map(x=>({title:x[0],lines:x[1]||[]}))};
-}
-
-async function shareResume(){
-  const data = collectData();
-  if(!data.name.trim()){ alert('Please fill in at least your name before sharing.'); return; }
-  const encoded = await compressData(minify(data));
-  const slug = data.name.trim().toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/-+$/,'');
-  const url = location.origin + location.pathname + '#/' + slug + '/' + encoded;
-  await navigator.clipboard.writeText(url);
-  showToast('Share link copied to clipboard!');
-}
-
-async function loadShared(){
-  const hash = location.hash;
-  if(!hash.startsWith('#/')) return false;
-  const parts = hash.slice(2).split('/');
-  if(parts.length < 2) return false;
-  const encoded = parts.slice(1).join('/');
-  try {
-    const raw = await decompressData(encoded);
-    const d = expand(raw);
-    $('name').value = d.name; $('loc').value = d.loc; $('phone').value = d.phone;
-    $('email').value = d.email; $('portfolio').value = d.portfolio;
-    $('linkedin').value = d.linkedin; $('otherlink').value = d.otherlink;
-    $('summary').value = d.summary; $('interests').value = d.interests;
-    d.skills.forEach(s=> addSkillCategory(s));
-    d.education.forEach(e=> addEdu(e));
-    d.experience.forEach(e=> addExp(e));
-    d.projects.forEach(p=> addProj(p));
-    d.certs.forEach(t=> addCert({text:t}));
-    d.awards.forEach(t=> addAward({text:t}));
-    d.activities.forEach(t=> addActivity({text:t}));
-    d.languages.forEach(t=> addLanguage({text:t}));
-    d.custom.forEach(c=> addCustomSection(c));
-    updateHeader(); updateSummary();
-    const iv=(d.interests||'').trim();
-    $('pvInterests').style.display=iv?'':'none';
-    $('pvInterestsText').textContent=iv;
-    document.body.classList.add('shared');
-    document.title = (d.name||'Resume') + ' — Resume';
-    return true;
-  } catch(e){ return false; }
-}
-
-/* Init */
-(async ()=>{
-  const isShared = await loadShared();
-  if(!isShared){
-    loadSaved();
-    updateHeader();
-    updateSummary();
-    const intVal = ($('interests').value||'').trim();
-    $('pvInterests').style.display = intVal ? '' : 'none';
-    $('pvInterestsText').textContent = intVal;
-  }
+(async function init(){
+  const savedTheme = localStorage.getItem(THEME_KEY);
+  if(savedTheme) document.documentElement.setAttribute('data-theme', savedTheme);
+  bindHeader();
+  bindButtons();
+  const shared = await loadShared();
+  if(!shared) loadSaved();
+  renderAll();
+  fitPreview();
+  setSection('header');
 })();
 </script>
 </body>
