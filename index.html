@@ -154,6 +154,18 @@
     min-height:34px;
     justify-content:flex-start;
   }
+  .watermark{
+    display:block;
+    padding:2px 4px 0;
+    color:var(--muted);
+    font-size:11px;
+    text-align:center;
+    text-decoration:none;
+  }
+  .watermark:hover{
+    color:var(--ink);
+    text-decoration:underline;
+  }
   .editor{
     background:var(--panel-2);
     display:flex;
@@ -527,6 +539,7 @@
       padding:8px 11px;
     }
     .navIcon,.count,.sideTools{ display:none; }
+    .watermark{ display:none; }
     .editor,.previewPane{ border-right:0; }
     body.mobile-preview .editor{ display:none; }
     body.mobile-edit .previewPane{ display:none; }
@@ -542,7 +555,7 @@
   }
   @media print{
     body{ background:#fff; }
-    .sidebar,.editor,.previewTop{ display:none !important; }
+    .sidebar,.editor,.previewTop,.watermark{ display:none !important; }
     .app{ display:block; min-height:auto; }
     .previewPane,
     body.mobile-edit .previewPane,
@@ -578,6 +591,7 @@
       <button class="btn danger" id="clearBtn" type="button">
         <span class="icon" aria-hidden="true">×</span><span>Clear resume</span>
       </button>
+      <a class="watermark" href="https://portfolio.sandesk.online/" target="_blank" rel="noopener">Created by DKSDLLS</a>
     </div>
   </aside>
 
